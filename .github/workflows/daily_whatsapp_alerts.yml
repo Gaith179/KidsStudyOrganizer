@@ -1,0 +1,32 @@
+name: Daily School Exam WhatsApp Alerts (24/7 Cloud)
+
+on:
+  schedule:
+    # Every day at 13:00 UTC (16:00 / 4:00 PM Jordan Time)
+    - cron: '0 13 * * *'
+  workflow_dispatch:
+
+jobs:
+  whatsapp_alert:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run AAJ Automated Exam Reminder
+        env:
+          AAJ_USERNAME: ${{ secrets.AAJ_USERNAME }}
+          AAJ_PASSWORD: ${{ secrets.AAJ_PASSWORD }}
+          CALLMEBOT_APIKEY_FATHER: ${{ secrets.CALLMEBOT_APIKEY_FATHER }}
+          CALLMEBOT_APIKEY_MOTHER: ${{ secrets.CALLMEBOT_APIKEY_MOTHER }}
+          CALLMEBOT_APIKEY_RYAN: ${{ secrets.CALLMEBOT_APIKEY_RYAN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python auto_whatsapp_scheduler.py --now
+

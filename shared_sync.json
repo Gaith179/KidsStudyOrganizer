@@ -1,0 +1,158 @@
+{
+  "version": 409,
+  "lastUpdated": "2026-10-28T11:13:42.557461",
+  "completedTasks": {
+    "test_1": {
+      "completed": true,
+      "updatedBy": "Ryan",
+      "updatedAt": "2026-10-27 01:09 PM",
+      "kidId": "ryan"
+    },
+    "day_monday_hw_0": {
+      "completed": false,
+      "updatedBy": "Mother",
+      "updatedAt": "2026-10-27 02:15 PM",
+      "kidId": "ryan"
+    },
+    "day_saturday_hw_0": {
+      "completed": true,
+      "updatedBy": "Ryan",
+      "updatedAt": "2026-10-28 08:01 AM",
+      "kidId": "jad"
+    },
+    "day_monday_hw_3": {
+      "completed": true,
+      "updatedBy": "Mother",
+      "updatedAt": "2026-10-28 08:02 AM",
+      "kidId": "ryan"
+    },
+    "day_tuesday_hw_2": {
+      "completed": true,
+      "updatedBy": "Mother",
+      "updatedAt": "2026-10-28 08:02 AM",
+      "kidId": "ryan"
+    },
+    "day_monday_hw_2": {
+      "completed": true,
+      "updatedBy": "Mother",
+      "updatedAt": "2026-10-28 08:02 AM",
+      "kidId": "ryan"
+    },
+    "day_tuesday_hw_3": {
+      "completed": true,
+      "updatedBy": "Mother",
+      "updatedAt": "2026-10-28 08:02 AM",
+      "kidId": "ryan"
+    },
+    "day_saturday_hw_1": {
+      "completed": true,
+      "updatedBy": "Mother",
+      "updatedAt": "2026-10-28 08:02 AM",
+      "kidId": "ryan"
+    },
+    "day_tuesday_hw_1": {
+      "completed": true,
+      "updatedBy": "Mother",
+      "updatedAt": "2026-10-28 08:02 AM",
+      "kidId": "ryan"
+    },
+    "day_wednesday_hw_0": {
+      "completed": true,
+      "updatedBy": "Ryan",
+      "updatedAt": "2026-10-28 10:35 AM",
+      "kidId": "ryan"
+    },
+    "day_thursday_hw_0": {
+      "completed": true,
+      "updatedBy": "Ryan",
+      "updatedAt": "2026-10-28 10:36 AM",
+      "kidId": "ryan"
+    },
+    "day_thursday_hw_1": {
+      "completed": true,
+      "updatedBy": "Ryan",
+      "updatedAt": "2026-10-28 10:36 AM",
+      "kidId": "ryan"
+    },
+    "day_thursday_hw_2": {
+      "completed": true,
+      "updatedBy": "Ryan",
+      "updatedAt": "2026-10-28 10:36 AM",
+      "kidId": "ryan"
+    },
+    "day_wednesday_hw_3": {
+      "completed": true,
+      "updatedBy": "Ryan",
+      "updatedAt": "2026-10-28 10:37 AM",
+      "kidId": "ryan"
+    },
+    "day_thursday_hw_3": {
+      "completed": true,
+      "updatedBy": "Ryan",
+      "updatedAt": "2026-10-28 10:37 AM",
+      "kidId": "ryan"
+    }
+  },
+  "assignmentsStatus": {},
+  "rewards": {
+    "ryan": {
+      "points": 125,
+      "streakDays": 4
+    },
+    "jad": {
+      "points": 100,
+      "streakDays": 3
+    }
+  },
+  "voiceNotes": {},
+  "activeDevices": {
+    "Ryan (الطالب)": {
+      "role": "Ryan (الطالب)",
+      "lastSeen": "01:17:23 PM",
+      "timestamp": 1793096243.3364887
+    },
+    "Ryan (ريان)": {
+      "role": "Ryan (ريان)",
+      "lastSeen": "01:51:39 PM",
+      "timestamp": 1793098299.5039818
+    },
+    "Father (أبو ريان)": {
+      "role": "Father (أبو ريان)",
+      "lastSeen": "01:26:16 PM",
+      "timestamp": 1793096776.0761425
+    },
+    "Mother (أم ريان)": {
+      "role": "Mother (أم ريان)",
+      "lastSeen": "01:28:24 PM",
+      "timestamp": 1793096904.9580448
+    },
+    "Jad (جاد)": {
+      "role": "Jad (جاد)",
+      "lastSeen": "01:41:09 PM",
+      "timestamp": 1793097669.1687496
+    },
+    "Ryan": {
+      "role": "Ryan",
+      "lastSeen": "11:13:42 AM",
+      "timestamp": 1793175222.5574577
+    },
+    "Ryan (Student)": {
+      "role": "Ryan (Student)",
+      "lastSeen": "02:09:13 PM",
+      "timestamp": 1793099353.4330423
+    },
+    "Mother": {
+      "role": "Mother",
+      "lastSeen": "10:14:02 AM",
+      "timestamp": 1793171642.558616
+    },
+    "Father": {
+      "role": "Father",
+      "lastSeen": "10:03:05 AM",
+      "timestamp": 1793170985.397421
+    }
+  },
+  "helpRequests": {},
+  "schoolBag": {},
+  "taskPhotos": {}
+}

@@ -1,0 +1,380 @@
+******************** KidsStudyOrganizer/Rayan_WeekPlan_Oct24.pdf ********************
+=== PAGE 1 ===
+Eighth Grade CS - A
+Sat 24 October - Thu 29 October , 2026
+Logo
+Weekly Plan
+Outcome Assignment Exam Note / Reference
+Subject / Day Saturday24/10/2026 Monday26/10/2026 Tuesday27/10/2026 Wednesday28/10/2026 Thursday29/10/2026
+اﻟﻌﻠوم Science
+Outcome
+Chapter 3: Forces and
+Energy
+3.1: Density
+Students will be able to:
+- Discover what is
+meant by density
+- Find out how to
+calculate density
+Note / Reference
+Learner`s book
+Outcome
+3.1: Density
+Students will be able to:
+find out how to
+calculate density of
+solids and liquids
+Note / Reference
+Learner`s book
+Worksheet: Calculating
+density
+Outcome
+Lab: Calculating
+density
+Objectives:
+Find out how to
+calculate density of
+solids (regular and
+irregular) and liquids
+Note / Reference
+Lab sheet
+Outcome
+Chapter 3: Forces and
+Energy
+3.1: Density
+Students will be able to:
+- Compare the
+densities of solids,
+liquids and gases
+- Understand and
+predict whether objects
+will float or sink in water
+Note / Reference
+Learner`s book
+Outcome
+Long weekend
+اﻟﺣﺎﺳوب
+Computing
+Outcome
+Count-Controlled
+Loops Using FOR
+A count-controlled loop
+repeats instructions a
+specific number of
+times.
+The loop needs:A
+counter variableA
+=== PAGE 2 ===
+Subject / Day Saturday24/10/2026 Monday26/10/2026 Tuesday27/10/2026 Wednesday28/10/2026 Thursday29/10/2026
+starting valueAn ending
+valueThe counter
+increases automatically
+by 1.
+The starting and ending
+values are both
+included.
+Pages 30–34
+اﻟﻠّﻐﺔ اﻟﻌرﺑﯾّﺔ Arabic
+Language
+Outcome
+اﻟﻧّﺗﺎﺟﺎت
+ﯾﻘرأ اﻟدّرس ﻗراءة ﺻﺣﯾﺣﺔ ﺣﺳب
+ﻣﻌﺎﯾﯾر اﻟﻘراءة
+ﯾﻔﮭم اﻷﻓﻛﺎر واﻟﻣﻌﺎﻧﻲ اﻟﺟدﯾدة
+اﻟواردة ﻓﻲ اﻟﻧّصّ 
+ﯾﺟﯾب ﻋن أﺳﺋﻠﺔ ﺧﺎﺻّﺔ ﺑﺎﻟدّرس
+Note / Reference
+اﻟﻣﺻﺎدر
+اﻟﺷّراﺋﺢ اﻟﺗّﻘدﯾﻣﯾّﺔ، ﻛﺗﺎب اﻟطّﺎﻟب
+)اﻟوﺣدة اﻟﺛّﺎﻟﺛﺔ: ﻧﺳﺎء راﺋدات(،
+دﻓﺗر اﻟطّﺎﻟب
+Outcome
+اﻟﻧّﺗﺎﺟﺎت
+ﯾﺗﻌرّف ﻋﻧﺎﺻر اﻟﻔنّ 
+اﻷدﺑﻲ:"اﻟﻣﻘﺎل" وﯾﻛﺗﺑﮫ ﻣن ﺧﻼل
+ﻗراءة ﻧﺻوص ﻣﺗﻧوّﻋﺔ وﺗﺣﻠﯾﻠﮭﺎ 
+ﯾﺧﺗﺎر ﺷرﯾﻛًﺎ ﻟﻠﻌﻣل ﻣﻌﮫ ﺿﻣن
+ﻣﺷروع اﻟﻠّﻐﺔ اﻟﻌرﺑﯾّﺔ: ﻧﺳﺎء
+راﺋدات
+ﯾﺧﺗﺎر ﺷﺧﺻﯾّﺔ اﻟﻣﺷروع
+Note / Reference
+اﻟﻣﺻﺎدر
+اﻟﺷّراﺋﺢ اﻟﺗّﻘدﯾﻣﯾّﺔ، ﻛﺗﺎب اﻟطّﺎﻟب
+)اﻟوﺣدة اﻟﺛّﺎﻟﺛﺔ: ﻧﺳﺎء راﺋدات(،
+دﻓﺗر اﻟطّﺎﻟب، ﻣﺧطط اﻟﻣﺷروع
+Outcome
+اﻟﻧّﺗﺎﺟﺎت
+ﯾﺻرّف اﻟﻔﻌل اﻟﻣﺿﺎرع ﺻﺣﯾﺢ 
+اﻵﺧر ﻣﻊ اﻟﺿّﻣﺎﺋر اﻟﻣﻧﻔﺻﻠﺔ
+ﯾﺟﯾب ﻋن أﺳﺋﻠﺔ ﺧﺎﺻّﺔ ﺑﺎﻟدّرس
+Note / Reference
+اﻟﻣﺻﺎدر
+اﻟﺷراﺋﺢ اﻟﺗّﻌﻠﯾﻣﯾّﺔ، اﻟﻛﺗﺎب، ورﻗﺔ
+ﻋﻣل ﺧﺎﺻّﺔ ﺑﺎﻟدّرس، دﻓﺗر
+اﻟطّﺎﻟب
+Outcome
+اﻟﻧّﺗﺎﺟﺎت
+ﯾﺻرّف اﻟﻔﻌل اﻟﻣﺿﺎرع ﺻﺣﯾﺢ 
+اﻵﺧر اﻟﻣﺿﻌّف ﻣﻊ اﻟﺿّﻣﺎﺋر
+اﻟﻣﻧﻔﺻﻠﺔ
+ﯾﺟﯾب ﻋن أﺳﺋﻠﺔ ﺧﺎﺻّﺔ ﺑﺎﻟدّرس
+Note / Reference
+اﻟﻣﺻﺎدر
+اﻟﺷراﺋﺢ اﻟﺗّﻌﻠﯾﻣﯾّﺔ، اﻟﻛﺗﺎب، ورﻗﺔ
+ﻋﻣل ﺧﺎﺻّﺔ ﺑﺎﻟدّرس، دﻓﺗر
+اﻟطّﺎﻟب
+Outcome
+ﻋطﻠﺔ ﻧﮭﺎﯾﺔ أﺳﺑوع طوﯾﻠﺔ
+اﻟﻠّﻐﺔ اﻻﻧﺟﻠﯾزﯾّﺔ
+English
+language
+Outcome
+Lesson 1+2:
+Outcome
+-Write a short
+descriptive paragraph
+using vivid language
+Outcome
+-Examine the structure
+of a detective story
+Note / Reference
+Outcome
+-Read and analyse the
+next part of the story
+Assignment
+Outcome
+Long Weekend
+=== PAGE 3 ===
+Subject / Day Saturday24/10/2026 Monday26/10/2026 Tuesday27/10/2026 Wednesday28/10/2026 Thursday29/10/2026
+-Read and analyse
+Extract 1 of `The Case
+of the Missing
+Masterpiece`
+-Identify the key story
+elements in a detective
+story
+Note / Reference
+-Learner`s book:
+Lesson 2.4 - pages 45-
+47
+-General Notes
+Copybook
+and varied punctuation
+marks
+Assignment
+-Answer questions 1-4
+in lesson 2.2 in the
+Workbook (pages 24-
+25)
+Note / Reference
+-Workbook: Lesson 2.2
+and 2.3 - pages 24-27
+-Learner`s book:
+Lesson 2.4 - pages 48-
+49
+-General Notes
+Copybook
+Read chapters 10-12 of
+the novel, Fish in a
+Tree (Please make
+sure you are prepared
+for any questions you
+may be asked about
+the assigned chapters)
+Note / Reference
+-Fish in a Tree
+(Chapters 10-12)
+اﻟرّﯾﺎﺿﯾﺎت  Math
+Outcome
+Simultaneous
+equations
+Note / Reference
+Learner`s Book P.94-96
++ copybook
+Outcome
+Lesson 1:
+Simultaneous
+equations
+Lesson 2:4.3
+Inequalities
+Exam
+Quiz 2.6 Deriving and
+using formulae
+Learner`s Book P.48-
+53.
+Note / Reference
+Learner`s Book P.96-
+99+ Copybook
+Outcome
+4.3 Inequalities
+Assignment
+Learner`s Book Q9
+P.100
+Note / Reference
+Learner`s Book P.99-
+101+ Copybook
+Outcome
+4.3 Inequalities
+Assignment
+Paper 2 checkpoint
+booklet Q2 P.22 +Q 14
+P.23 +Q16 P.24 + Q16
+and Q23 P.26 Q5 P.27
+Note / Reference
+Learner`s Book P.101-
+102+ Copybook
+Outcome
+Long Weekend
+******************** KidsStudyOrganizer/Jad_WeekPlan_Oct24.pdf ********************
+=== PAGE 1 ===
+Fifth Grade CP - B
+Sat 24 October - Thu 29 October , 2026
+Logo
+Weekly Plan
+Outcome Assignment Exam Note / Reference
+Subject / Day Saturday24/10/2026 Monday26/10/2026 Tuesday27/10/2026 Wednesday28/10/2026 Thursday29/10/2026
+اﻟﻠّﻐﺔ اﻟﻌرﺑﯾّﺔ Arabic
+Language
+Outcome
+ﯾﻣﯾز ﻛﺗﺎﺑﺔ اﻷﻟف ﻓﻲ ﻧﮭﺎﯾﺔ اﻟﻛﻠﻣﺔ
+ﻓوق اﻟﺛﻼﺛﻲ
+Note / Reference
+اﻟدﻓﺗر +اﻟﻛﺗﺎب
+Outcome
+ﯾﻣﯾز أﻧواع اﻟﺟﻣل )ﺷﺑﮫ اﻟﺟﻣﻠﺔ
+ﺟﺎر واﻟﻣﺟرور(
+Note / Reference
+اﻟﻛﺗﺎب +اﻟدﻓﺗر
+Outcome
+ﻗواﻋد) اﻷﻟف اﻟﻠﯾﻧﺔ - ﺷﺑﮫ
+اﻟﺟﻣﻠﺔ(:ﯾﺣل ﺗطﺑﯾﻘﺎت ﻓﻲ ﻛﺗﺎب
+اﻟﺗﻣﺎرﯾن
+Note / Reference
+ﻛﺗﺎب اﻟﺗﻣﺎرﯾن
+Outcome
+ﯾﻛﺗب ﻗﺻﺔ ﻗﺻﯾرة ﻓﻲ ﺣدود
+ ﻛﻠﻣﺔ150-120
+Note / Reference
+اﻟﻛﺗﺎب واﻟدﻓﺗر
+Outcome
+ﻋطﻠﺔ ﻣﻧﺗﺻف اﻟﻔﺻل
+اﻟﻠّﻐﺔ اﻻﻧﺟﻠﯾزﯾّﺔ
+English
+language
+Exam
+Midterm English
+Assessment (refer to
+LMS for all related
+resources)
+Outcome
+Lesson 1:
+-Identify and explore
+the use of past tenses
+in writing
+Lesson 2:
+-Speaking Practice
+Note / Reference
+References
+Past Tenses
+PowerPoint
+Past Tenses Worksheet
+Outcome
+-Read the article on
+pages 30-32 and
+answer the questions
+related to it
+Assignment
+Complete questions 1-5
+on page 29 from your
+Student`s Book on your
+Grammar/General
+Notes Copybook
+Note / Reference
+Student`s Book, p. 30-
+32
+Comprehension
+Worksheet #5
+Outcome
+Lesson 1:
+-Explore the meanings
+of new vocabulary
+words and how to use
+them in meaningful
+sentences
+Lesson 2:
+-Write the second draft
+of an argumentative
+essay
+Note / Reference
+Vocabulary List #2
+Outcome
+Long Weekend
+=== PAGE 2 ===
+Subject / Day Saturday24/10/2026 Monday26/10/2026 Tuesday27/10/2026 Wednesday28/10/2026 Thursday29/10/2026
+Note
+Please note that the
+speaking practice will
+be held in class and in
+the format of a speech
+Writing a One-Sided
+Argument Booklet
+Creative Writing
+Copybook
+اﻟرّﯾﺎﺿﯾﺎت 
+Mathematics
+Outcome
+Use order of operations
++ Use Brackets
+Note / Reference
+Student`s Book P.22-25
+Outcome
+Use order of operations
++ Use brackets
+Note / Reference
+Student`s Book P.28
+Activity Book P.15+
+P.16 +P.18
+Outcome
+2.1 Count on and back
+Note / Reference
+Student`s Book P.20-21
+Outcome
+2.1 Count on and back
+Assignment
+Submit worksheet (10)
+Note / Reference
+Activity book P.12-14
+Outcome
+Long Weekend
+اﻟﻌﻠوم Science
+Outcome
+Investigate how
+effectively different
+materials conduct
+electricity.
+Note / Reference
+Learner`s Book p.45,
+46
+Outcome
+Compare thermal and
+electrical conductors
+and explain their
+differences.
+Note / Reference
+Learner`s Book p.47
+Outcome
+Describe reversible and
+irreversible changes
+and explain the
+differences between
+them.
+Note / Reference
+Learner`s Book p.50
+Outcome
+Describe the process of
+dissolving
+Note / Reference
+Learner`s Book p.51,
+52
+Outcome
+Long Weekend

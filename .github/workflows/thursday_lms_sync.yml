@@ -1,0 +1,44 @@
+name: Thursday School LMS Sync (24/7 Cloud)
+
+on:
+  schedule:
+    # Every Thursday at 14:00 UTC (17:00 / 5:00 PM Jordan Time)
+    - cron: '0 14 * * 4'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run AAJ LMS Cloud Sync Engine
+        env:
+          AAJ_USERNAME: ${{ secrets.AAJ_USERNAME }}
+          AAJ_PASSWORD: ${{ secrets.AAJ_PASSWORD }}
+        run: |
+          python sync_school_cloud.py
+
+      - name: Commit and Push Updated Study Data
+        run: |
+          git config --global user.name "StudyHub Cloud Bot"
+          git config --global user.email "bot@studyhub.internal"
+          git add js/syncedData.js
+          if git diff --staged --quiet; then
+            echo "No changes in weekly plans or homework."
+          else
+            git commit -m "Auto-synced weekly plans and assignments from AAJ LMS [skip ci]"
+            git push
+          fi
+

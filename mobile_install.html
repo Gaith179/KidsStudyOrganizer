@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Install StudyHub on Mobile | Ryan & Jad</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      --bg: #0f172a;
+      --card-bg: rgba(30, 41, 59, 0.85);
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: rgba(255, 255, 255, 0.1);
+      --accent: #10b981;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: #0f172a;
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+      line-height: 1.6;
+    }
+
+    .install-container {
+      max-width: 800px;
+      width: 100%;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(16px);
+      border-radius: 24px;
+      padding: 36px 30px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(79, 70, 229, 0.25);
+      border: 1px solid rgba(129, 140, 248, 0.4);
+      color: #a5b4fc;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #fff 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      margin-bottom: 28px;
+    }
+
+    .qr-card {
+      background: #ffffff;
+      padding: 16px;
+      border-radius: 20px;
+      display: inline-block;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+      margin-bottom: 20px;
+    }
+
+    .qr-card img {
+      width: 220px;
+      height: 220px;
+      display: block;
+      border-radius: 8px;
+    }
+
+    .url-box {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 20px;
+      font-family: monospace;
+      font-size: 1.15rem;
+      color: #38bdf8;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .instructions-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      text-align: left;
+      margin-top: 24px;
+    }
+
+    @media (max-width: 650px) {
+      .instructions-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .step-card {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+    }
+
+    .step-card h3 {
+      font-size: 1.1rem;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .step-list {
+      list-style: none;
+      font-size: 0.9rem;
+      color: #cbd5e1;
+    }
+
+    .step-list li {
+      margin-bottom: 8px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .step-num {
+      background: var(--primary);
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 800;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .actions-bar {
+      margin-top: 32px;
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 12px 26px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-main {
+      background: var(--primary-gradient);
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+    }
+
+    .btn-main:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(79, 70, 229, 0.5);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .btn-outline:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="install-container">
+    <div class="badge">📲 Mobile Ready • PWA & WebAPK</div>
+    <h1>Install Kids Study Organizer</h1>
+    <p class="subtitle">Install the Kids Study Organizer app on all family mobile devices (Father, Mother, Ryan & Jad)
+    </p>
+
+    <div class="qr-card">
+      <img src="mobile_qr.png" alt="Scan to install on mobile">
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:12px; align-items:center; margin-bottom:24px;">
+      <div class="url-box" style="margin-bottom:0;">
+        <span>🌍 Outside Home (Mobile Data 4G/5G):</span>
+        <a href="https://pork-tan-cancer-level.trycloudflare.com" target="_blank"
+          style="color:#38bdf8; text-decoration:underline;">https://pork-tan-cancer-level.trycloudflare.com</a>
+      </div>
+      <div class="url-box" style="margin-bottom:0; font-size:0.95rem; opacity:0.85;">
+        <span>🏠 At Home (Home Wi-Fi):</span>
+        <strong>http://192.168.8.2:8080</strong>
+      </div>
+    </div>
+
+    <div class="instructions-grid">
+      <!-- Android Steps -->
+      <div class="step-card">
+        <h3>📱 Ryan's Mobile & Android Phones</h3>
+        <ul class="step-list">
+          <li>
+            <span class="step-num">1</span>
+            <span>Open Chrome and visit the link above (works on Home Wi-Fi and Mobile Data).</span>
+          </li>
+          <li>
+            <span class="step-num">2</span>
+            <span>Tap <strong>"Install App"</strong> or open menu (⋮) -> <strong>"Add to Home Screen"</strong>.</span>
+          </li>
+          <li>
+            <span class="step-num">3</span>
+            <span>Installs with a native icon 📚. Works offline and syncs directly with AAJ school portal!</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Blackview Tablet Steps -->
+      <div class="step-card" style="border-color: rgba(52, 211, 153, 0.4);">
+        <h3 style="color:#34d399;">📟 Jad's Blackview Tablet</h3>
+        <ul class="step-list">
+          <li>
+            <span class="step-num" style="background:#059669;">1</span>
+            <span>Open Chrome on the Blackview tablet and visit the public link.</span>
+          </li>
+          <li>
+            <span class="step-num" style="background:#059669;">2</span>
+            <span>Tap the banner <strong>"Add StudyHub to Home screen"</strong>.</span>
+          </li>
+          <li>
+            <span class="step-num" style="background:#059669;">3</span>
+            <span>Optimized specifically for the Blackview tablet screen (landscape & touch controls).</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="actions-bar">
+      <a href="index.html" class="btn btn-main">
+        🚀 Open App on PC
+      </a>
+      <a href="KidsStudyOrganizer_Mobile_App.zip" download class="btn btn-outline">
+        📦 Download Complete Project (.zip)
+      </a>
+    </div>
+  </div>
+
+</body>
+
+</html>

@@ -1,0 +1,25 @@
+# Cloudflared binaries & tunnels
+cloudflared.exe
+active_tunnel_url.txt
+
+# Packages and archives
+*.zip
+*.msix
+*.msixbundle
+*.appxbundle
+apk/
+KidsStudyOrganizer_Mobile_App.zip
+
+# School downloads cache (files are streamed directly on-demand with zero storage)
+school_downloads/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# OS artifacts
+Thumbs.db
+.DS_Store
+*.tmp
+

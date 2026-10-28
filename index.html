@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <script>
+    window.onerror = function(msg, url, line, col, err) {
+      var d = document.createElement("div");
+      d.id = "global_js_error";
+      d.style.cssText = "position:fixed; top:0; left:0; width:100%; background:#fee2e2; color:#b91c1c; border-bottom:3px solid #ef4444; padding:15px; z-index:999999; font-size:16px; font-weight:bold;";
+      d.textContent = "⚠️ JavaScript Error: " + msg + " at " + (url ? url.split("/").pop() : "inline") + ":" + line + ":" + col;
+      document.body ? document.body.appendChild(d) : document.addEventListener("DOMContentLoaded", function() { document.body.appendChild(d); });
+    };
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="StudyHub">
+  <link rel="manifest" href="manifest.json">
+  <title>Kids Study Organizer | Ryan & Jad • Alliance Academy Jordan</title>
+  
+  <!-- Google Fonts: Outfit & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="css/style.css?v=9.5">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="shortcut icon" href="icons/favicon.png">
+</head>
+<body>
+
+  <!-- =====================================================================
+       APP HEADER: Brand & Student Switcher
+       ===================================================================== -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand-badge">
+        <div class="brand-icon-box" style="padding:2px; overflow:hidden;"><img src="icons/favicon.png" alt="R·J" style="width:100%; height:100%; border-radius:8px; object-fit:cover;"></div>
+        <div class="brand-info">
+          <h1>Study Hub <span style="font-size:0.85rem; font-weight:600; color:var(--text-muted);">| Student Study Organizer</span></h1>
+          <p>Ryan (8th Grade) & Jad (5th Grade) • Alliance Academy Jordan</p>
+        </div>
+      </div>
+
+      <!-- Quick Switcher for Ryan & Jad -->
+      <div class="kid-switcher" id="kidSwitcher">
+        <!-- Rendered by app.js -->
+      </div>
+
+      <!-- Quick Utility Actions -->
+      <div class="header-actions">
+        <!-- 3-Device Realtime Sync Indicator -->
+        <div id="syncStatusPill" style="display:inline-flex; align-items:center; gap:6px; font-size:0.75rem; font-weight:700; background:#ecfdf5; border:1px solid #10b981; color:#065f46; padding:5px 12px; border-radius:20px; cursor:pointer;" onclick="app.showSyncStatusModal()" title="Live sync status across Father, Mother, and Kids devices">
+          <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#10b981;"></span>
+          Synced (3 Devices)
+        </div>
+
+        <!-- Device User Role Picker -->
+        <div style="display:inline-flex; align-items:center; gap:4px; background:var(--bg-card-subtle); padding:4px 8px; border-radius:8px; border:1px solid var(--border-color); font-size:0.75rem;">
+          <span title="Active Device Role">📱</span>
+          <select id="deviceUserSelector" onchange="app.switchDeviceUser(this.value)" style="border:none; background:transparent; font-size:0.75rem; font-weight:700; color:var(--text-main); outline:none; cursor:pointer;">
+            <option value="Father">👨‍💼 Father</option>
+            <option value="Mother">👩‍💼 Mother</option>
+            <option value="Ryan" selected>👦 Ryan</option>
+            <option value="Jad">👦 Jad</option>
+          </select>
+        </div>
+
+        <!-- Live School Sync Button -->
+        <button type="button" class="btn-primary" onclick="schoolSync.syncAll()" style="font-size:0.78rem; padding:6px 14px; background:linear-gradient(135deg, #10b981 0%, #059669 100%);" title="Live Sync from Alliance Academy LMS">
+          🔄 Live Sync
+        </button>
+        <a href="https://lms.aaj.edu.jo" target="_blank" class="btn-secondary" style="font-size:0.78rem; padding:6px 12px; gap:6px; text-decoration:none;" title="Open Alliance Academy LMS Portal">
+          🏫 AAJ Portal
+        </a>
+        <button type="button" class="action-icon-btn" onclick="app.printChecklist()" title="Print Daily Checklist">
+          🖨
+        </button>
+        <button type="button" class="action-icon-btn" onclick="app.exportData()" title="Backup Study Data">
+          💾
+        </button>
+        <button type="button" class="action-icon-btn" onclick="app.showSettingsModal()" title="Family Privacy & School Settings" style="font-size:1.05rem;">
+          ⚙️
+        </button>
+        <button type="button" id="btnInstallAppTop" class="btn-primary" onclick="app.triggerPwaInstall()" style="background:#fbbf24; color:#0f172a; font-weight:800; font-size:0.75rem; padding:6px 12px; border-radius:8px; border:none; display:inline-flex; align-items:center; gap:5px;" title="Install on this phone">
+          📲 Install App
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- =====================================================================
+       PWA INSTALLATION HERO BANNER (Native Android / Tablet 1-Click Install)
+       ===================================================================== -->
+  <div id="pwaInstallBanner" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; max-width:1200px; margin:10px 14px 0 14px; padding:12px 18px; background:linear-gradient(135deg, #1e3a8a 0%, #312e81 100%); color:#fff; border-radius:14px; box-shadow:0 6px 16px rgba(30, 58, 138, 0.25);">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <img src="icons/icon-192.png" style="width:40px; height:40px; border-radius:10px; border:2px solid rgba(255,255,255,0.3); box-shadow:0 2px 6px rgba(0,0,0,0.3);" alt="R·J">
+      <div>
+        <div style="font-weight:800; font-size:0.95rem; color:#fff;">Install Study Hub on This Phone</div>
+        <div style="font-size:0.78rem; opacity:0.85;">Runs in full screen like a native app • 0 MB storage used</div>
+      </div>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <button type="button" class="btn-primary" onclick="app.triggerPwaInstall()" style="background:#fbbf24; color:#0f172a; font-weight:800; font-size:0.82rem; padding:8px 16px; border-radius:10px; border:none; box-shadow:0 2px 8px rgba(0,0,0,0.2);">
+        📲 Install App Now
+      </button>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       PARENT EXECUTIVE DUAL-KID DASHBOARD (FATHER / MOTHER VIEW)
+       ===================================================================== -->
+  <section id="parentExecutiveDashboard" style="display:none; max-width: 1200px; margin: 16px auto; padding: 0 20px;">
+    <!-- Rendered dynamically by app.js when Father or Mother profile is active -->
+  </section>
+
+  <!-- =====================================================================
+       STUDENT LEARNING INTERFACE WRAPPER (RYAN / JAD / FULL MODE)
+       ===================================================================== -->
+  <div id="studentInterfaceWrapper">
+
+    <!-- =====================================================================
+         STUDENT PROFILE HERO BANNER
+         ===================================================================== -->
+    <section class="kid-banner" id="kidBanner">
+      <!-- Rendered dynamically by app.js -->
+    </section>
+
+  <!-- =====================================================================
+       MOTIVATION & SMART STUDY RESOURCE SEARCH HUB
+       ===================================================================== -->
+  <section class="study-assistant-section" id="studyAssistantSection" style="max-width: 1200px; margin: 14px auto 0 auto; padding: 0 20px;">
+    <!-- Rendered dynamically by app.js -->
+  </section>
+
+  <!-- =====================================================================
+       MAIN NAVIGATION TABS
+       ===================================================================== -->
+  <div class="tabs-container">
+    <nav class="nav-tabs">
+      <button type="button" class="tab-link active" data-tab="today" onclick="app.setTab('today')">
+        <span>📅</span>
+        <span>Today's Agenda</span>
+      </button>
+      <button type="button" class="tab-link" data-tab="weekly" onclick="app.setTab('weekly')">
+        <span>🗓</span>
+        <span>Weekly Timetable & Prep</span>
+      </button>
+      <button type="button" class="tab-link" data-tab="assignments" onclick="app.setTab('assignments')">
+        <span>🎯</span>
+        <span>Assignments & Exams</span>
+      </button>
+      <button type="button" class="tab-link" data-tab="documents" onclick="app.setTab('documents')">
+        <span>📚</span>
+        <span>School Resources (LMS)</span>
+      </button>
+      <button type="button" class="tab-link" data-tab="emails" onclick="app.setTab('emails')">
+        <span>✉</span>
+        <span>Circulars & Notices</span>
+      </button>
+      <button type="button" class="tab-link" data-tab="studyplan" onclick="app.setTab('studyplan')">
+        <span>🧠</span>
+        <span>Study Planner</span>
+      </button>
+      <button type="button" class="tab-link" data-tab="rewards" onclick="app.setTab('rewards')">
+        <span>🎮</span>
+        <span>Rewards & Points</span>
+      </button>
+      <button type="button" class="tab-link" data-tab="pastpapers" onclick="app.setTab('pastpapers')">
+        <span>🎯</span>
+        <span>Checkpoint Exams</span>
+      </button>
+      <button type="button" class="tab-link" data-tab="notifications" onclick="app.setTab('notifications')">
+        <span>🔔</span>
+        <span>WhatsApp Alerts</span>
+      </button>
+      <button type="button" class="tab-link" data-tab="timer" onclick="app.setTab('timer')">
+        <span>⏱</span>
+        <span>Focus Timer</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- =====================================================================
+       MAIN APP CONTENT PANES
+       ===================================================================== -->
+  <main class="main-content">
+    
+    <!-- TAB 1: TODAY'S AGENDA -->
+    <div class="tab-pane active" id="tab-today">
+      
+      <!-- Professional Print Header for Canon TS3300 Wi-Fi Printer -->
+      <div class="print-only-header">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div>
+            <h2 class="print-sheet-title">Alliance Academy Jordan • Daily Study & Homework Desk Sheet</h2>
+            <div style="font-size:10pt; color:#333; font-weight:700;">Student Daily Study Tracker & Desk Homework Sheet</div>
+          </div>
+          <div style="text-align:right;">
+            <div id="printStudentBadge" style="font-size:12pt; font-weight:900; border:2px solid #000; padding:4px 12px; border-radius:6px; background:#f4f4f4;">
+              <!-- Dynamically populated by app.js -->
+            </div>
+          </div>
+        </div>
+        <div class="print-meta-line">
+          <span id="printDateString">📅 Date: </span>
+          <span>🎯 Target: Complete all homework & Cambridge goals</span>
+          <span>🖨️ Canon TS3300 Inkjet</span>
+        </div>
+      </div>
+
+      <!-- Day picker chips: Week starts on Saturday (Holidays: Friday & Sunday) -->
+      <div class="day-picker-chips" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <div id="dayChipsList" style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+          <!-- Dynamically populated and highlighted for TODAY by app.js -->
+        </div>
+        <button type="button" class="btn-secondary" onclick="app.printChecklist()" style="font-size:0.8rem; padding:6px 14px; display:inline-flex; align-items:center; gap:6px; border-color:var(--primary);" title="Print Daily Worksheet on Canon TS3300 Wi-Fi">
+          🖨️ Print for Desk (Canon TS3300)
+        </button>
+      </div>
+
+      <div class="today-grid">
+        <!-- Left Column: Periods & Lessons -->
+        <div class="card">
+          <div class="card-header-line">
+            <h4 id="todayScheduleTitle">📖 Timetable & Subjects: <strong>Saturday</strong></h4>
+            <button type="button" class="btn-secondary" style="padding: 4px 10px; font-size: 0.78rem;" onclick="app.setTab('weekly')">
+              View Full Week →
+            </button>
+          </div>
+          <div class="periods-list" id="todayPeriodsList">
+            <!-- Rendered by app.js -->
+          </div>
+        </div>
+
+        <!-- Right Column: Interactive Homework & Tasks Checklist -->
+        <div class="card">
+          <div class="card-header-line">
+            <h4>✅ Tasks & Homework Checklist</h4>
+            <button type="button" class="btn-primary" style="padding: 5px 12px; font-size: 0.8rem;" onclick="app.openModal('modalAddAssignment')">
+              + Add Task
+            </button>
+          </div>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">
+            Check off assignments as your child finishes them today.
+          </p>
+          <div class="hw-checklist" id="todayHwChecklist">
+            <!-- Rendered by app.js -->
+          </div>
+        </div>
+      </div>
+
+      <!-- SMART NEXT-DAY SCHOOL BAG & HOMEWORK PACKING CHECKER -->
+      <div class="card" id="schoolBagCheckerCard" style="margin-top: 18px; border-top: 3.5px solid #f59e0b; background:var(--bg-card);">
+        <!-- Rendered dynamically by app.js based on tomorrow's subjects -->
+      </div>
+
+      <!-- Professional Print Sign-off Footer for Canon TS3300 -->
+      <div class="print-only-footer">
+        <div>✍️ <strong>Parent Signature:</strong> ______________________</div>
+        <div>⏱ <strong>Study Time:</strong> ______ mins</div>
+        <div>⭐ <strong>Today's Points Earned:</strong> +______</div>
+      </div>
+
+    </div>
+
+    <!-- TAB 2: WEEKLY PLAN MATRIX -->
+    <div class="tab-pane" id="tab-weekly">
+      <div class="section-bar">
+        <div>
+          <h3 id="weeklyPlanTitle">Weekly Study Plan & Timetable</h3>
+          <p style="font-size: 0.82rem; color: var(--text-muted);">
+            Official 5-Day Weekly Plan (Alliance Academy Jordan) • Saturday to Thursday
+          </p>
+          <div style="margin-top:4px; display:inline-flex; align-items:center; gap:6px; background:#ecfdf5; border:1px solid #6ee7b7; padding:3px 10px; border-radius:6px; font-size:0.75rem; color:#065f46; font-weight:700;">
+            <span>🕒 Automated Sync:</span>
+            <span>Every Thursday at 05:00 PM from lms.aaj.edu.jo</span>
+          </div>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+          <button type="button" class="btn-primary" onclick="app.openOfficialPdf()" style="display:inline-flex; align-items:center; gap:6px; font-size:0.8rem; padding:6px 14px;" title="Open official school PDF in app">
+            📄 View Official School PDF
+          </button>
+          <button type="button" class="btn-secondary" onclick="app.syncSchoolLmsNow()" style="display:inline-flex; align-items:center; gap:6px; font-size:0.8rem; padding:6px 14px;" title="Fetch latest published weekly plans from LMS">
+            🔄 Sync from LMS Now
+          </button>
+          <button type="button" class="btn-secondary" onclick="app.printChecklist()" style="display:inline-flex; align-items:center; gap:6px; font-size:0.8rem; padding:6px 14px;">
+            🖨 Print Plan (Canon TS3300)
+          </button>
+        </div>
+      </div>
+
+      <!-- Unified Home Preparation Evening Note Banner -->
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin: 12px 0 14px 0; background:#f0fdf4; border:1.5px solid #bbf7d0; padding:10px 14px; border-radius:10px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="font-size:1.3rem;">🌙</span>
+          <div>
+            <strong style="color:#166534; font-size:0.88rem;">Evening Preparation Schedule (Day-Before Preparation)</strong>
+            <div style="font-size:0.76rem; color:#15803d; margin-top:2px;">Each school day column indicates the evening before to prepare homework and revise for upcoming exams.</div>
+          </div>
+        </div>
+        <span style="font-size:0.75rem; font-weight:800; background:#16a34a; color:#fff; padding:4px 12px; border-radius:20px;">Prepared in Advance</span>
+      </div>
+
+      <!-- Alliance Academy Jordan Official Color Legend -->
+      <div class="weekly-legend" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:10px 0 16px 0; font-size:0.8rem; background:var(--bg-card); padding:8px 12px; border-radius:8px; border:1px solid var(--border-color);">
+        <span style="font-weight:700; color:var(--text-muted); margin-right:4px;">Official Color Legend:</span>
+        <span style="display:inline-flex; align-items:center; gap:5px; background:var(--bg-card-subtle); padding:3px 8px; border-radius:5px; border-left:3px solid #334155;">
+          <span style="display:inline-block; width:10px; height:10px; background:#334155; border-radius:2px;"></span>
+          <strong style="color:var(--text-main);">Learning Outcomes</strong>
+        </span>
+        <span style="display:inline-flex; align-items:center; gap:5px; background:#ecfdf5; padding:3px 8px; border-radius:5px; border-left:3px solid #10b981; color:#065f46;">
+          <span style="display:inline-block; width:10px; height:10px; background:#10b981; border-radius:2px;"></span>
+          <strong>Assignments & Homework</strong>
+        </span>
+        <span style="display:inline-flex; align-items:center; gap:5px; background:#fef2f2; padding:3px 8px; border-radius:5px; border-left:3px solid #ef4444; color:#991b1b;">
+          <span style="display:inline-block; width:10px; height:10px; background:#ef4444; border-radius:2px;"></span>
+          <strong>Exams & Quizzes</strong>
+        </span>
+        <span style="display:inline-flex; align-items:center; gap:5px; background:#eff6ff; padding:3px 8px; border-radius:5px; border-left:3px solid #3b82f6; color:#1e40af;">
+          <span style="display:inline-block; width:10px; height:10px; background:#3b82f6; border-radius:2px;"></span>
+          <strong>Textbooks & References</strong>
+        </span>
+      </div>
+
+      <div class="weekly-grid" id="weeklyGridContainer">
+        <!-- Rendered by app.js: 5 Columns (Saturday - Thursday) -->
+      </div>
+    </div>
+
+    <!-- TAB 3: ASSIGNMENTS & EXAMS -->
+    <div class="tab-pane" id="tab-assignments">
+      <div class="section-bar">
+        <div>
+          <h3>🎯 Assignments, Quizzes & Projects</h3>
+          <p style="font-size: 0.82rem; color: var(--text-muted);">
+            Track submission deadlines, exams, and project rubrics.
+          </p>
+        </div>
+        <button type="button" class="btn-primary" onclick="app.openModal('modalAddAssignment')">
+          + Add Assignment or Exam
+        </button>
+      </div>
+
+      <!-- Filters -->
+      <div class="asg-filter-bar">
+        <button type="button" class="filter-btn active" data-filter="all" onclick="app.setAssignmentFilter('all')">All Items</button>
+        <button type="button" class="filter-btn" data-filter="pending" onclick="app.setAssignmentFilter('pending')">Pending Only</button>
+        <button type="button" class="filter-btn" data-filter="quiz" onclick="app.setAssignmentFilter('quiz')">Quizzes & Tests 🔥</button>
+        <button type="button" class="filter-btn" data-filter="completed" onclick="app.setAssignmentFilter('completed')">Completed ✓</button>
+      </div>
+
+      <div class="asg-cards-grid" id="assignmentsGrid">
+        <!-- Rendered by app.js -->
+      </div>
+    </div>
+
+    <!-- TAB 4: SCHOOL RESOURCES (LMS) -->
+    <div class="tab-pane" id="tab-documents">
+      <div class="section-bar">
+        <div>
+          <h3>📚 School Resources & Learning Materials (LMS)</h3>
+          <p style="font-size: 0.82rem; color: var(--text-muted);">
+            Directly synced from Alliance Academy Jordan (lms.aaj.edu.jo) • Worksheets, past papers, presentations, and summaries.
+          </p>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <button type="button" class="btn-secondary" onclick="schoolSync.syncAll()" title="Refresh resources from LMS">
+            🔄 Refresh LMS
+          </button>
+          <label for="realFileInput" class="btn-primary" style="cursor: pointer;">
+            📤 Upload Custom File
+          </label>
+        </div>
+      </div>
+
+      <!-- Search & Subject Filter Bar -->
+      <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:12px;">
+        <input 
+          type="text" 
+          id="docSearchInput" 
+          class="study-search-input" 
+          placeholder="🔍 Search resources by topic, title, or teacher name..." 
+          oninput="app.filterDocuments()" 
+          style="flex:1; min-width:260px; background:var(--bg-card); border:1.5px solid var(--border-color); border-radius:8px; padding:8px 12px; font-size:0.85rem;"
+        />
+      </div>
+
+      <!-- Dynamic Subject Filter Chips -->
+      <div class="asg-filter-bar" id="resourceFilterBar" style="margin-bottom: 16px;">
+        <!-- Populated dynamically by app.js -->
+      </div>
+
+      <!-- Drag & Drop Zone -->
+      <div class="dropzone-box" id="docsDropzone" style="margin-bottom: 16px; padding: 18px;">
+        <div class="dropzone-icon" style="font-size: 28px;">📥</div>
+        <div class="dropzone-text">
+          <h4 style="font-size: 0.95rem;">Drag & Drop Additional School Files Here</h4>
+          <p style="font-size: 0.8rem;">Supports <strong>Word (.docx), PowerPoint (.pptx), PDF (.pdf)</strong> and images.</p>
+        </div>
+      </div>
+      <input type="file" id="realFileInput" multiple accept=".pdf,.doc,.docx,.ppt,.pptx,.png,.jpg,.jpeg,.xlsx,.xls" style="display: none;">
+
+      <!-- Grid of school resources & files -->
+      <div class="docs-grid" id="docsGridContainer">
+        <!-- Rendered by app.js -->
+      </div>
+    </div>
+
+    <!-- TAB 5: EMAILS & CIRCULARS -->
+    <div class="tab-pane" id="tab-emails">
+      <div class="section-bar">
+        <div>
+          <h3>✉ Teacher Emails & School Notices</h3>
+          <p style="font-size: 0.82rem; color: var(--text-muted);">
+            Log essential circulars, teacher feedback, and reminders without getting lost in school apps.
+          </p>
+        </div>
+        <button type="button" class="btn-primary" onclick="app.openModal('modalAddEmail')">
+          + Add Notice / Email
+        </button>
+      </div>
+
+      <div class="emails-list" id="emailsListContainer">
+        <!-- Rendered by app.js -->
+      </div>
+    </div>
+
+    <!-- TAB 6: STUDY FOCUS TIMER -->
+    <div class="tab-pane" id="tab-timer">
+      <div class="timer-container">
+        <h3>⏱ Pomodoro Study Focus Timer</h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">
+          Boost concentration with 25 minutes of active study followed by a 5-minute break.
+        </p>
+
+        <!-- Timer Circle Visual -->
+        <div class="timer-circle-box">
+          <svg class="timer-svg" viewBox="0 0 240 240">
+            <circle class="timer-circle-bg" cx="120" cy="120" r="105"></circle>
+            <circle class="timer-circle-progress" id="timerCircleProgress" cx="120" cy="120" r="105"></circle>
+          </svg>
+          <div class="timer-center-text">
+            <div class="timer-digits" id="timerDigits">25:00</div>
+            <div class="timer-mode-lbl" id="timerModeLabel">Focus Session</div>
+          </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="timer-controls">
+          <button type="button" class="btn-secondary" onclick="app.setTimerMode('study')">
+            🎯 25m Study
+          </button>
+          <button type="button" class="timer-btn-main" id="timerToggleBtn" onclick="app.toggleTimer()" title="Start / Pause">
+            ▶
+          </button>
+          <button type="button" class="btn-secondary" onclick="app.setTimerMode('break')">
+            ☕ 5m Break
+          </button>
+          <button type="button" class="btn-secondary" onclick="app.resetTimer()" title="Reset Timer">
+            ↺ Reset
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 7: SMART STUDY PLANNER -->
+    <div class="tab-pane" id="tab-studyplan">
+      <div class="section-bar">
+        <div>
+          <h3>🧠 Smart Weekly Study Time Planner</h3>
+          <p style="font-size:0.82rem; color:var(--text-muted);">
+            Optimized after-school study routine balancing homework, revision, and upcoming exams.
+          </p>
+        </div>
+        <button type="button" class="btn-primary" onclick="app.printChecklist()">
+          🖨 Print Routine
+        </button>
+      </div>
+
+      <div class="weekly-grid" id="studyPlannerGridContainer">
+        <!-- Rendered by app.js -->
+      </div>
+    </div>
+
+    <!-- TAB 8: WHATSAPP & SMS ALERTS -->
+    <div class="tab-pane" id="tab-notifications">
+      <div class="section-bar">
+        <div>
+          <h3>🔔 WhatsApp & SMS Alerts</h3>
+          <p style="font-size:0.82rem; color:var(--text-muted);">
+            1-Day-before reminders for quizzes & exams, sent directly to Father, Mother, and Student phones.
+          </p>
+        </div>
+        <button type="button" class="btn-primary" style="background:#25d366;" onclick="app.openModal('modalEditContacts')">
+          ⚙ Edit Phone Numbers
+        </button>
+      </div>
+
+      <div id="contactsListContainer" style="margin-bottom: 20px;">
+        <!-- Family Numbers -->
+      </div>
+
+      <h4 style="margin-bottom: 12px; font-weight: 800; font-size:1.1rem;">🚨 Upcoming Exam Reminders</h4>
+      <div id="examAlertsList">
+        <!-- Rendered by app.js -->
+      </div>
+    </div>
+
+    <!-- TAB 9: GAMIFICATION & REWARDS -->
+    <div class="tab-pane" id="tab-rewards">
+      <div class="rewards-hero" id="rewardsHeroBanner">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+
+      <div class="section-bar">
+        <div>
+          <h3>🎁 Family Rewards Wishlist</h3>
+          <p style="font-size:0.82rem; color:var(--text-muted);">
+            Earn points by checking off homework, scoring well, and keeping your daily study streak.
+          </p>
+        </div>
+        <button type="button" class="btn-primary" onclick="app.openModal('modalAddReward')">
+          + Add Family Reward
+        </button>
+      </div>
+
+      <div class="reward-cards-grid" id="rewardsCatalogGrid">
+        <!-- Rendered by app.js -->
+      </div>
+    </div>
+
+    <!-- TAB 10: CAMBRIDGE CHECKPOINT & MOCK EXAMS HUB -->
+    <div class="tab-pane" id="tab-pastpapers">
+      <div class="section-bar">
+        <div>
+          <h3 id="pastPapersHeading">🎯 Cambridge Checkpoint & Exam Revision Room</h3>
+          <p style="font-size:0.82rem; color:var(--text-muted);">
+            Practice with real past papers under official exam timing. Teacher answer keys remain locked until exam completion.
+          </p>
+        </div>
+        <div id="activeExamTimerBadge" style="display:none;" class="badge-chip">
+          ⏱ Mock Exam In Progress: <strong id="activeExamCountdown" style="color:var(--high-priority); margin-left:4px;">45:00</strong>
+        </div>
+      </div>
+
+      <div id="pastPapersListContainer" class="exam-cards-grid">
+        <!-- Rendered by app.js -->
+      </div>
+    </div>
+
+  </main>
+  </div> <!-- /#studentInterfaceWrapper -->
+
+  <!-- =====================================================================
+       MODAL 1: ADD NEW ASSIGNMENT / EXAM
+       ===================================================================== -->
+  <div class="modal-overlay" id="modalAddAssignment">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h4>🎯 Add Assignment or Exam</h4>
+        <button type="button" class="modal-close-btn" onclick="app.closeModal('modalAddAssignment')">✕</button>
+      </div>
+      <form id="formAddAssignment" onsubmit="app.saveNewAssignment(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="asgTitleInput">Title *</label>
+            <input type="text" id="asgTitleInput" class="form-control" placeholder="e.g. Chapter 4 Science Quiz or Math Past Paper" required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="asgSubjectSelect">Subject *</label>
+              <select id="asgSubjectSelect" class="form-control" required>
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="asgTypeSelect">Type</label>
+              <select id="asgTypeSelect" class="form-control">
+                <option value="Quiz">Quiz / Test</option>
+                <option value="Homework">Homework</option>
+                <option value="Project">Project / Research</option>
+                <option value="Essay">Essay / Writing</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="asgDueDateInput">Due Date *</label>
+              <input type="date" id="asgDueDateInput" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label for="asgPrioritySelect">Priority</label>
+              <select id="asgPrioritySelect" class="form-control">
+                <option value="high">🔥 High Priority</option>
+                <option value="medium" selected>⚡ Normal</option>
+                <option value="low">🌱 Low</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="asgDetailsInput">Instructions / Teacher Details</label>
+            <textarea id="asgDetailsInput" class="form-control" rows="3" placeholder="Enter page numbers, chapters, or specific guidelines..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="app.closeModal('modalAddAssignment')">Cancel</button>
+          <button type="submit" class="btn-primary">Save Assignment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       MODAL 2: ADD TEACHER NOTICE / EMAIL
+       ===================================================================== -->
+  <div class="modal-overlay" id="modalAddEmail">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h4>✉ Add Teacher Notice / Circular</h4>
+        <button type="button" class="modal-close-btn" onclick="app.closeModal('modalAddEmail')">✕</button>
+      </div>
+      <form id="formAddEmail" onsubmit="app.saveNewEmail(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="emailSenderInput">Sender</label>
+            <input type="text" id="emailSenderInput" class="form-control" placeholder="e.g. Science Teacher, School Administration">
+          </div>
+
+          <div class="form-group">
+            <label for="emailSubjectInput">Subject / Title *</label>
+            <input type="text" id="emailSubjectInput" class="form-control" placeholder="e.g. Schedule for Checkpoint Revision Sessions" required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="emailDateInput">Date Received</label>
+              <input type="date" id="emailDateInput" class="form-control">
+            </div>
+            <div class="form-group">
+              <label for="emailTagInput">Category Tag</label>
+              <select id="emailTagInput" class="form-control">
+                <option value="Notice">General Notice</option>
+                <option value="Exam Alert">Exam Alert</option>
+                <option value="Homework">Homework / Task</option>
+                <option value="Event">School Event</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="emailContentInput">Message Content *</label>
+            <textarea id="emailContentInput" class="form-control" rows="4" placeholder="Paste the text from the school portal or teacher circular..." required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="app.closeModal('modalAddEmail')">Cancel</button>
+          <button type="submit" class="btn-primary">Save Notice</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       MODAL 3: EDIT FAMILY CONTACT NUMBERS
+       ===================================================================== -->
+  <div class="modal-overlay" id="modalEditContacts">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h4>📱 Family Phone Numbers</h4>
+        <button type="button" class="modal-close-btn" onclick="app.closeModal('modalEditContacts')">✕</button>
+      </div>
+      <form id="formEditContacts" onsubmit="app.saveFamilyContactsForm(event)">
+        <div class="modal-body">
+          <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:14px;">
+            Enter mobile numbers for WhatsApp & SMS alerts (Format: Phone Number with Country Code).
+          </p>
+
+          <div class="form-group">
+            <label for="contactFatherInput">Father's Mobile *</label>
+            <input type="text" id="contactFatherInput" class="form-control" placeholder="079XXXXXXX" value="" required>
+          </div>
+
+          <div class="form-group">
+            <label for="contactMotherInput">Mother's Mobile *</label>
+            <input type="text" id="contactMotherInput" class="form-control" placeholder="079XXXXXXX" value="" required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="contactRyanInput">Ryan's Mobile</label>
+              <input type="text" id="contactRyanInput" class="form-control" placeholder="079XXXXXXX" value="">
+            </div>
+            <div class="form-group">
+              <label for="contactJadInput">Jad's Mobile</label>
+              <input type="text" id="contactJadInput" class="form-control" placeholder="079XXXXXXX" value="">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="app.closeModal('modalEditContacts')">Cancel</button>
+          <button type="submit" class="btn-primary">Save Numbers</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       MODAL 4: IN-APP DOCUMENT PREVIEWER (PDF, Word, PPT)
+       ===================================================================== -->
+  <div class="modal-overlay" id="modalDocPreview">
+    <div class="modal-card" style="max-width: 900px; width: 95%;">
+      <div class="modal-header">
+        <h4 id="docPreviewTitle">👁 Document Preview</h4>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <a id="docPreviewExternalLink" href="#" target="_blank" class="btn-secondary" style="font-size:0.78rem; padding:4px 10px; text-decoration:none;">
+            ↗ Open in New Tab
+          </a>
+          <button type="button" class="modal-close-btn" onclick="app.closeModal('modalDocPreview')">✕</button>
+        </div>
+      </div>
+      <div class="modal-body doc-modal-body" id="docPreviewContainer">
+        <!-- Rendered dynamically by app.js: iframe for PDF, rich card for DOCX/PPTX -->
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       MODAL 5: ADD CUSTOM FAMILY REWARD
+       ===================================================================== -->
+  <div class="modal-overlay" id="modalAddReward">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h4>🎁 Add Custom Family Reward</h4>
+        <button type="button" class="modal-close-btn" onclick="app.closeModal('modalAddReward')">✕</button>
+      </div>
+      <form id="formAddReward" onsubmit="app.saveNewReward(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="rewardTitleInput">Reward Title *</label>
+            <input type="text" id="rewardTitleInput" class="form-control" placeholder="e.g. 🍕 Weekend Pizza Night or 🎬 Cinema Outing" required>
+          </div>
+          <div class="form-group">
+            <label for="rewardPointsInput">Points Cost *</label>
+            <input type="number" id="rewardPointsInput" class="form-control" value="250" min="50" step="50" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="app.closeModal('modalAddReward')">Cancel</button>
+          <button type="submit" class="btn-primary">Add to Catalog</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       MODAL 6: ONE-TAP WHATSAPP DAILY DIGEST
+       ===================================================================== -->
+  <!-- =====================================================================
+       MODAL: EASY PHONE INSTALLATION GUIDE (Chrome & Android)
+       ===================================================================== -->
+  <div class="modal-overlay" id="modalInstallGuide">
+    <div class="modal-card" style="max-width: 480px; text-align:center;">
+      <div class="modal-header">
+        <h4 style="margin:0 auto; font-size:1.1rem;">📲 How to Install on Your Phone</h4>
+        <button type="button" class="modal-close-btn" onclick="app.closeModal('modalInstallGuide')">✕</button>
+      </div>
+      <div class="modal-body" style="padding:20px; text-align:left;">
+        <div style="display:flex; flex-direction:column; gap:16px;">
+          <div style="display:flex; gap:12px; align-items:flex-start;">
+            <div style="background:#e0e7ff; color:#4338ca; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; flex-shrink:0;">1</div>
+            <div>
+              <strong style="font-size:0.92rem; color:var(--text-main);">Tap Chrome's Menu (3 Dots ⋮)</strong>
+              <p style="margin:4px 0 0; font-size:0.82rem; color:var(--text-muted);">In Google Chrome, tap the <strong>three vertical dots (⋮)</strong> in the top-right corner.</p>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:12px; align-items:flex-start;">
+            <div style="background:#e0e7ff; color:#4338ca; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; flex-shrink:0;">2</div>
+            <div>
+              <strong style="font-size:0.92rem; color:var(--text-main);">Tap "Install app" or "Add to Home screen"</strong>
+              <p style="margin:4px 0 0; font-size:0.82rem; color:var(--text-muted);">From the dropdown menu, select <strong>"Install app"</strong> (or <strong>"Add to Home screen"</strong>).</p>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:12px; align-items:flex-start;">
+            <div style="background:#e0e7ff; color:#4338ca; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; flex-shrink:0;">3</div>
+            <div>
+              <strong style="font-size:0.92rem; color:var(--text-main);">Done! It appears on your Home Screen</strong>
+              <p style="margin:4px 0 0; font-size:0.82rem; color:var(--text-muted);">The <strong>Cambridge R·J</strong> app icon will now appear on your phone home screen like any normal app!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content:center;">
+        <button type="button" class="btn-primary" onclick="app.closeModal('modalInstallGuide')" style="padding:10px 24px; font-weight:800;">
+          Got it! 👍
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       FAMILY PIN LOCK MODAL (Privacy & Child Safety)
+       ===================================================================== -->
+  <div id="modalFamilyPinLock" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); z-index:9999999; align-items:center; justify-content:center; padding:20px; box-sizing:border-box;">
+    <div style="background:#ffffff; color:#0f172a; max-width:380px; width:100%; border-radius:24px; padding:32px 24px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.5); text-align:center;">
+      <div style="width:68px; height:68px; margin:0 auto 16px; background:#e0e7ff; color:#4f46e5; border-radius:20px; display:flex; align-items:center; justify-content:center; font-size:32px;">
+        🔒
+      </div>
+      <h2 style="font-size:1.35rem; font-weight:800; margin:0 0 6px; color:#1e1b4b;">Family PIN Required</h2>
+      <p style="font-size:0.85rem; color:#64748b; margin:0 0 24px;">Please enter your family PIN to access Ryan & Jad's Study Hub</p>
+      
+      <div style="display:flex; justify-content:center; gap:12px; margin-bottom:12px;">
+        <input type="password" id="familyPinInput" maxlength="6" placeholder="PIN" style="font-size:1.75rem; letter-spacing:8px; text-align:center; width:180px; padding:10px 16px; border:2px solid #cbd5e1; border-radius:14px; font-weight:800; outline:none; transition:border-color 0.2s;" onkeyup="if(event.key==='Enter') app.verifyPin()">
+      </div>
+      <div id="pinErrorMsg" style="color:#ef4444; font-size:0.82rem; font-weight:700; height:20px; margin-bottom:12px;"></div>
+
+      <button type="button" class="btn-primary" onclick="app.verifyPin()" style="width:100%; padding:14px; font-size:1rem; font-weight:800; border-radius:14px; background:linear-gradient(135deg, #4f46e5 0%, #3730a3 100%); border:none; color:#ffffff; cursor:pointer; box-shadow:0 10px 20px -5px rgba(79, 70, 229, 0.4);">
+        Unlock Study Hub
+      </button>
+      <div style="margin-top:16px; font-size:0.75rem; color:#94a3b8;">
+        Default Family PIN: <strong style="color:#4f46e5;">2026</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       PRIVATE SETTINGS & SCHOOL VAULT MODAL
+       ===================================================================== -->
+  <div class="modal-overlay" id="modalAppSettings">
+    <div class="modal-card" style="max-width: 560px;">
+      <div class="modal-header">
+        <h4>⚙️ Family Settings & School Vault</h4>
+        <button type="button" class="modal-close-btn" onclick="app.closeModal('modalAppSettings')">✕</button>
+      </div>
+      <div class="modal-body" style="display:flex; flex-direction:column; gap:16px;">
+        <div style="background:#ecfdf5; border:1px solid #a7f3d0; color:#065f46; padding:12px; border-radius:10px; font-size:0.82rem; line-height:1.4;">
+          🔒 <strong>100% Private & Safe:</strong> All credentials and phone numbers are stored strictly inside this specific device's internal memory. They are never uploaded to any public server.
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <label style="font-size:0.82rem; font-weight:700; color:var(--text-main);">Family Security PIN</label>
+          <input type="text" id="settingFamilyPin" placeholder="2026" maxlength="6" style="padding:8px 12px; border:1px solid var(--border-color); border-radius:8px; font-size:0.9rem; font-weight:700; background:var(--bg-card); color:var(--text-main);">
+          <span style="font-size:0.75rem; color:var(--text-muted);">Required to unlock the app on startup.</span>
+        </div>
+
+        <hr style="border:none; border-top:1px solid var(--border-color); margin:4px 0;">
+
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <h5 style="margin:0; font-size:0.9rem; color:var(--text-main);">🏫 Amman Academy Jordan (AAJ) LMS</h5>
+          <div style="display:flex; flex-direction:column; gap:4px;">
+            <label style="font-size:0.78rem; font-weight:600; color:var(--text-muted);">LMS Parent Email</label>
+            <input type="email" id="settingLmsUser" placeholder="e.g. parent.family@aaj.edu.jo" style="padding:8px 12px; border:1px solid var(--border-color); border-radius:8px; font-size:0.85rem; background:var(--bg-card); color:var(--text-main);">
+          </div>
+          <div style="display:flex; flex-direction:column; gap:4px;">
+            <label style="font-size:0.78rem; font-weight:600; color:var(--text-muted);">LMS Parent Password</label>
+            <input type="password" id="settingLmsPass" placeholder="••••••••••••" style="padding:8px 12px; border:1px solid var(--border-color); border-radius:8px; font-size:0.85rem; background:var(--bg-card); color:var(--text-main);">
+          </div>
+        </div>
+
+        <hr style="border:none; border-top:1px solid var(--border-color); margin:4px 0;">
+
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <h5 style="margin:0; font-size:0.9rem; color:var(--text-main);">📱 WhatsApp Family Contacts</h5>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <div style="display:flex; flex-direction:column; gap:4px;">
+              <label style="font-size:0.78rem; font-weight:600; color:var(--text-muted);">👨 Father WhatsApp</label>
+              <input type="tel" id="settingPhoneFather" placeholder="Phone Number" style="padding:8px 12px; border:1px solid var(--border-color); border-radius:8px; font-size:0.85rem; background:var(--bg-card); color:var(--text-main);">
+            </div>
+            <div style="display:flex; flex-direction:column; gap:4px;">
+              <label style="font-size:0.78rem; font-weight:600; color:var(--text-muted);">👩 Mother WhatsApp</label>
+              <input type="tel" id="settingPhoneMother" placeholder="Phone Number" style="padding:8px 12px; border:1px solid var(--border-color); border-radius:8px; font-size:0.85rem; background:var(--bg-card); color:var(--text-main);">
+            </div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:4px;">
+            <label style="font-size:0.78rem; font-weight:600; color:var(--text-muted);">👦 Ryan WhatsApp</label>
+            <input type="tel" id="settingPhoneRyan" placeholder="Phone Number" style="padding:8px 12px; border:1px solid var(--border-color); border-radius:8px; font-size:0.85rem; background:var(--bg-card); color:var(--text-main);">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center;">
+        <button type="button" class="btn-secondary" onclick="app.closeModal('modalAppSettings')">Cancel</button>
+        <button type="button" class="btn-primary" onclick="app.saveSettings()" style="background:linear-gradient(135deg, #10b981 0%, #059669 100%);">
+          💾 Save Privately
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalWhatsAppDigest">
+    <div class="modal-card" style="max-width: 650px;">
+      <div class="modal-header">
+        <h4>📲 Send WhatsApp Daily Digest</h4>
+        <button type="button" class="modal-close-btn" onclick="app.closeModal('modalWhatsAppDigest')">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:12px;">
+          Send today's study progress, pending homework, and Cambridge Checkpoint goals directly to family WhatsApp:
+        </p>
+        
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:10px; margin-bottom:14px;">
+          <button type="button" class="btn-whatsapp-recipient" onclick="app.dispatchWhatsApp('ryan')">
+            <span style="font-size:1.3rem;">👦</span>
+            <div style="text-align:left;">
+              <div style="font-weight:800; font-size:0.85rem; color:var(--text-main);">Ryan's Mobile</div>
+              <div style="font-size:0.75rem; color:var(--text-muted);">Family WhatsApp</div>
+            </div>
+          </button>
+          <button type="button" class="btn-whatsapp-recipient" onclick="app.dispatchWhatsApp('mother')">
+            <span style="font-size:1.3rem;">👩</span>
+            <div style="text-align:left;">
+              <div style="font-weight:800; font-size:0.85rem; color:var(--text-main);">Mother's Mobile</div>
+              <div style="font-size:0.75rem; color:var(--text-muted);">Family WhatsApp</div>
+            </div>
+          </button>
+          <button type="button" class="btn-whatsapp-recipient" onclick="app.dispatchWhatsApp('father')">
+            <span style="font-size:1.3rem;">👨</span>
+            <div style="text-align:left;">
+              <div style="font-weight:800; font-size:0.85rem; color:var(--text-main);">Father's Mobile</div>
+              <div style="font-size:0.75rem; color:var(--text-muted);">Family WhatsApp</div>
+            </div>
+          </button>
+        </div>
+
+        <label for="whatsappDigestPreviewText" style="font-size:0.8rem; font-weight:700; color:var(--text-main); display:block; margin-bottom:6px;">
+          Message Preview (Ready to Send):
+        </label>
+        <textarea id="whatsappDigestPreviewText" class="form-control" rows="8" style="font-family:monospace; font-size:0.82rem; line-height:1.45;"></textarea>
+      </div>
+      <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <button type="button" class="btn-secondary" onclick="app.copyDigestToClipboard()">
+          📋 Copy Text
+        </button>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn-secondary" onclick="app.closeModal('modalWhatsAppDigest')">Close</button>
+          <button type="button" class="btn-primary" style="background:#25D366; border-color:#128C7E;" onclick="app.dispatchWhatsApp('custom')">
+            💬 Open WhatsApp Now
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       MODAL 7: 10-SECOND PARENT VOICE RECORDER
+       ===================================================================== -->
+  <div class="modal-overlay" id="modalVoiceRecorder">
+    <div class="modal-card" style="max-width: 480px; text-align:center;">
+      <div class="modal-header">
+        <h4>🎙️ Record Parent Voice Note</h4>
+        <button type="button" class="modal-close-btn" onclick="app.cancelVoiceRecording()">✕</button>
+      </div>
+      <div class="modal-body" style="padding: 24px 20px;">
+        <div id="voiceRecorderTaskTitle" style="font-size:0.9rem; font-weight:700; color:var(--text-main); margin-bottom:14px;">
+          Task: Homework Instructions
+        </div>
+
+        <div class="voice-recording-indicator" id="voiceRecordingIndicator">
+          <div class="voice-mic-circle pulsing" id="voiceMicCircle">🎙️</div>
+          <div class="voice-recording-timer" id="voiceRecordingTimer">00:00 / 00:15</div>
+          <p id="voiceRecorderStatusText" style="font-size:0.8rem; color:var(--text-muted); margin-top:8px;">
+            Speak instructions or encouragement... (15 seconds max)
+          </p>
+        </div>
+
+        <div style="margin-top:20px; display:flex; justify-content:center; gap:12px;">
+          <button type="button" class="btn-danger" id="btnStopVoiceRecord" onclick="app.stopAndSaveVoiceRecording()" style="padding:10px 24px; font-weight:800; border-radius:30px; font-size:0.9rem;">
+            ⏹ Stop & Save Note
+          </button>
+          <button type="button" class="btn-secondary" onclick="app.cancelVoiceRecording()" style="border-radius:30px; padding:10px 20px;">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       MODAL 8: CAMBRIDGE CHECKPOINT & PRIMARY PRACTICE QUIZZER
+       ===================================================================== -->
+  <div class="modal-overlay" id="modalPracticeQuiz">
+    <div class="modal-card" style="max-width: 620px;">
+      <div class="modal-header">
+        <h4 style="display:flex; align-items:center; gap:8px;">
+          <span>🧠</span>
+          <span>Cambridge Checkpoint Practice Quiz</span>
+        </h4>
+        <button type="button" class="modal-close-btn" onclick="app.closeModal('modalPracticeQuiz')">✕</button>
+      </div>
+      <div class="modal-body" id="practiceQuizBody">
+        <!-- Rendered dynamically by quizzer.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       MODAL 9: SUNDAY FAMILY STUDY REPORT CARD (WHATSAPP DISPATCH)
+       ===================================================================== -->
+  <div class="modal-overlay" id="modalWeeklyReportCard">
+    <div class="modal-card" style="max-width: 650px;">
+      <div class="modal-header">
+        <h4 style="display:flex; align-items:center; gap:8px;">
+          <span>📊</span>
+          <span>Sunday Weekly Study & Cambridge Report Card</span>
+        </h4>
+        <button type="button" class="modal-close-btn" onclick="app.closeModal('modalWeeklyReportCard')">✕</button>
+      </div>
+      <div class="modal-body" id="weeklyReportCardBody">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+      <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <button type="button" class="btn-secondary" onclick="app.copyWeeklyReportToClipboard()">
+          📋 Copy Report Text
+        </button>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn-secondary" onclick="app.closeModal('modalWeeklyReportCard')">Close</button>
+          <button type="button" class="btn-primary" style="background:#25D366; border-color:#128C7E;" onclick="app.dispatchWeeklyReportWhatsApp()">
+            📲 Send to Family WhatsApp
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       MODAL 10: JAD CAMBRIDGE ENGLISH VOCABULARY & SPELLING MASTER HUB
+       ===================================================================== -->
+  <div class="modal-overlay" id="modalJadVocabHub">
+    <div class="modal-card" style="max-width: 720px; width: 95%;">
+      <div class="modal-header" style="background: linear-gradient(135deg, #059669 0%, #0d9488 100%); color:#fff; border-radius: 12px 12px 0 0;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="font-size:1.6rem;">🔤</span>
+          <div>
+            <h4 style="margin:0; font-size:1.15rem; color:#fff; font-weight:800;">Jad's Cambridge English Vocabulary & Spelling Hub</h4>
+            <div style="font-size:0.75rem; opacity:0.9;">Alliance Academy Jordan • Grade 5 CP • First Semester Exam Prep</div>
+          </div>
+        </div>
+        <button type="button" class="modal-close-btn" style="color:#fff;" onclick="jadVocabHub.closeVocabModal()">✕</button>
+      </div>
+      <div class="modal-body" id="jadVocabBody" style="padding:16px 20px;">
+        <!-- Rendered dynamically by vocabHub.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       MODAL 11: HOMEWORK WORKBOOK PHOTO LIGHTBOX VIEWER
+       ===================================================================== -->
+  <div class="photo-lightbox-modal" id="modalPhotoLightbox" onclick="if(event.target === this) app.closePhotoLightbox()">
+    <div class="photo-lightbox-content">
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 18px; border-bottom:1px solid #e2e8f0; background:#f8fafc;">
+        <div>
+          <strong id="photoLightboxTitle" style="font-size:0.95rem; color:#0f172a;">📸 Homework Workbook Page</strong>
+          <div id="photoLightboxMeta" style="font-size:0.75rem; color:#64748b;">Uploaded for parent verification</div>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn-secondary" style="font-size:0.78rem; padding:4px 10px;" onclick="app.downloadActivePhoto()">⬇️ Download</button>
+          <button type="button" class="modal-close-btn" onclick="app.closePhotoLightbox()">✕</button>
+        </div>
+      </div>
+      <div style="text-align:center; background:#0f172a; padding:10px;">
+        <img id="photoLightboxImg" class="photo-lightbox-img" src="" alt="Homework Workbook Photo">
+      </div>
+    </div>
+  </div>
+
+  <!-- Fullscreen Confetti Particle Canvas -->
+  <canvas id="confettiCanvas" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:999999; display:none;"></canvas>
+
+  <!-- =====================================================================
+       MOBILE BOTTOM NAVIGATION BAR (Smartphones & Tablets)
+       ===================================================================== -->
+  <nav class="mobile-bottom-nav">
+    <button type="button" class="mobile-nav-btn active" data-tab="today" onclick="app.setTab('today')">
+      <span class="nav-icon">📅</span>
+      <span>Today</span>
+    </button>
+    <button type="button" class="mobile-nav-btn" data-tab="weekly" onclick="app.setTab('weekly')">
+      <span class="nav-icon">🗓</span>
+      <span>Weekly</span>
+    </button>
+    <button type="button" class="mobile-nav-btn" data-tab="assignments" onclick="app.setTab('assignments')">
+      <span class="nav-icon">🎯</span>
+      <span>Tasks</span>
+    </button>
+    <button type="button" class="mobile-nav-btn" data-tab="documents" onclick="app.setTab('documents')">
+      <span class="nav-icon">📚</span>
+      <span>Resources</span>
+    </button>
+    <button type="button" class="mobile-nav-btn" data-tab="studyplan" onclick="app.setTab('studyplan')">
+      <span class="nav-icon">🧠</span>
+      <span>Planner</span>
+    </button>
+    <button type="button" class="mobile-nav-btn" data-tab="timer" onclick="app.setTab('timer')">
+      <span class="nav-icon">⏱</span>
+      <span>Timer</span>
+    </button>
+    <button type="button" class="mobile-nav-btn" onclick="schoolSync.syncAll()">
+      <span class="nav-icon">🔄</span>
+      <span>Sync</span>
+    </button>
+  </nav>
+
+  <!-- Hidden Photo Capture Input (Front/Back Camera on Phones) -->
+  <input type="file" id="cameraPhotoInput" accept="image/*" capture="environment" style="display:none;" onchange="app.handlePhotoUpload(event)">
+
+  <!-- Scripts (Cache-Busted) -->
+  <script src="js/mockData.js?v=9.7"></script>
+  <script src="js/syncedData.js?v=9.7"></script>
+  <script src="js/db.js?v=9.7"></script>
+  <script src="js/studyPlanner.js?v=9.7"></script>
+  <script src="js/notifications.js?v=9.7"></script>
+  <script src="js/rewards.js?v=9.7"></script>
+  <script src="js/pastPapers.js?v=9.7"></script>
+  <script src="js/quizzer.js?v=9.7"></script>
+  <script src="js/vocabHub.js?v=9.7"></script>
+  <script src="js/schoolSync.js?v=9.7"></script>
+  <script src="js/app.js?v=9.7"></script>
+
+  <!-- Service Worker Registration for PWA Mobile App Installation -->
+  <script>
+    if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+  </script>
+
+</body>
+</html>
