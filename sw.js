@@ -1,5 +1,5 @@
 // Service Worker for Mobile PWA (Offline-First with Network-First Update Strategy)
-const CACHE_NAME = "studyhub-v24";
+const CACHE_NAME = "studyhub-v25";
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",

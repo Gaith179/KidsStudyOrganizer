@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="css/style.css?v=9.6">
+  <link rel="stylesheet" href="css/style.css?v=9.7">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
   <link rel="shortcut icon" href="icons/favicon.png">
@@ -1070,6 +1070,22 @@
     </div>
   </div>
 
+  <!-- =====================================================================
+       WELCOMING LETTER POP-UP CARD (AUTO-DISMISS IN 3 SECONDS)
+       ===================================================================== -->
+  <div id="welcomingLetterModal" class="welcome-letter-overlay" style="display:none;" onclick="app.closeWelcomingLetter()">
+    <div class="welcome-letter-card" id="welcomeLetterCard" onclick="event.stopPropagation()">
+      <button type="button" class="welcome-letter-close" onclick="app.closeWelcomingLetter()" title="Close">✕</button>
+      <div id="welcomeLetterContent">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+      <!-- 3-Second Countdown Progress Bar -->
+      <div class="welcome-timer-bar-track">
+        <div class="welcome-timer-bar-fill" id="welcomeTimerBar"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- Fullscreen Confetti Particle Canvas -->
   <canvas id="confettiCanvas" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:999999; display:none;"></canvas>
 
@@ -1121,7 +1137,7 @@
   <script src="js/quizzer.js?v=9.7"></script>
   <script src="js/vocabHub.js?v=9.7"></script>
   <script src="js/schoolSync.js?v=9.7"></script>
-  <script src="js/app.js?v=9.8"></script>
+  <script src="js/app.js?v=9.9"></script>
 
   <!-- Service Worker Registration for PWA Mobile App Installation -->
   <script>

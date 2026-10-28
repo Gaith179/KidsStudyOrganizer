@@ -106,6 +106,7 @@ class StudyApp {
     this.timerInterval = null;
     this.isTimerRunning = false;
     this.timerMode = "study"; // 'study' or 'break'
+    this.welcomingLetterTimer = null;
 
     this.init();
   }
@@ -231,6 +232,16 @@ class StudyApp {
     db.startLiveSync((remoteEvent) => {
       this.handleRemoteSyncUpdate(remoteEvent);
     });
+
+    // Welcoming Letter: Greet Ryan, Jad, or Mother with special pop-up card
+    setTimeout(() => {
+      const role = db.getDeviceUser();
+      if (role === "Mother" || role === "Ryan" || role === "Jad") {
+        this.showWelcomingLetter(role);
+      } else if (this.activeKidId) {
+        this.showWelcomingLetter(this.activeKidId);
+      }
+    }, 600);
   }
 
   initDeviceUserSelector() {
@@ -383,6 +394,142 @@ class StudyApp {
     this.forceStudentView = false;
     this.showToast(`📱 Active device role set to: ${role}`);
     this.updateViewForRole();
+    this.showWelcomingLetter(role);
+  }
+
+  showWelcomingLetter(profileName) {
+    const modal = document.getElementById("welcomingLetterModal");
+    const content = document.getElementById("welcomeLetterContent");
+    const timerBar = document.getElementById("welcomeTimerBar");
+    if (!modal || !content) return;
+
+    if (this.welcomingLetterTimer) {
+      clearTimeout(this.welcomingLetterTimer);
+      this.welcomingLetterTimer = null;
+    }
+
+    const norm = (profileName || "").toLowerCase().trim();
+    let letterData = null;
+
+    if (norm === "ryan") {
+      letterData = {
+        badge: "💌 A Special Letter From Dad",
+        badgeBg: "rgba(251, 191, 36, 0.15)",
+        badgeColor: "#92400e",
+        badgeBorder: "#fcd34d",
+        cardBorder: "2px solid #fbbf24",
+        avatar: "R",
+        avatarBg: "linear-gradient(135deg, #4f46e5, #312e81)",
+        avatarBorder: "#fbbf24",
+        greeting: "Dear Ryan,",
+        greetingColor: "#1e1b4b",
+        english: "You are amazing and great, and someday you will be a great man and a role model for everyone.",
+        arabic: "أنت رائع ومميز، ويوماً ما ستكون رجلاً عظيماً وقدوة للجميع..",
+        arabicColor: "#4338ca",
+        signature: "Love you, — Your Dad ❤️",
+        sigColor: "#b45309",
+        barColor: "linear-gradient(90deg, #4f46e5, #fbbf24)"
+      };
+    } else if (norm === "jad") {
+      letterData = {
+        badge: "💌 A Special Letter From Dad",
+        badgeBg: "rgba(52, 211, 153, 0.15)",
+        badgeColor: "#065f46",
+        badgeBorder: "#6ee7b7",
+        cardBorder: "2px solid #34d399",
+        avatar: "J",
+        avatarBg: "linear-gradient(135deg, #059669, #047857)",
+        avatarBorder: "#34d399",
+        greeting: "Dear Jad,",
+        greetingColor: "#065f46",
+        english: "My hero, the amazing Jad! Someday people will talk about your success.",
+        arabic: "بطلي، وجاد الرائع! يوماً ما سيتحدث الجميع عن نجاحك..",
+        arabicColor: "#047857",
+        signature: "Love you, — Your Dad ❤️",
+        sigColor: "#059669",
+        barColor: "linear-gradient(90deg, #059669, #34d399)"
+      };
+    } else if (norm === "mother") {
+      letterData = {
+        badge: "💖 With All My Love & Gratitude",
+        badgeBg: "rgba(251, 113, 133, 0.15)",
+        badgeColor: "#9f1239",
+        badgeBorder: "#fecdd3",
+        cardBorder: "2px solid #fb7185",
+        avatar: "🌸",
+        avatarBg: "linear-gradient(135deg, #e11d48, #be123c)",
+        avatarBorder: "#fb7185",
+        greeting: "To the Heart of Our Family,",
+        greetingColor: "#9f1239",
+        english: "The perfect mother, the amazing wife! Thank you for your endless effort in building our family.",
+        arabic: "الأم المثالية، والزوجة الرائعة! شكراً لجهودكِ وعطائكِ المستمر في بناء عائلتنا..",
+        arabicColor: "#be123c",
+        signature: "Love you, — Gaith ❤️",
+        sigColor: "#e11d48",
+        barColor: "linear-gradient(90deg, #e11d48, #fb7185)"
+      };
+    } else {
+      return;
+    }
+
+    const card = document.getElementById("welcomeLetterCard");
+    if (card) {
+      card.style.border = letterData.cardBorder;
+    }
+
+    content.innerHTML = `
+      <div style="margin-bottom:12px;">
+        <span style="background:${letterData.badgeBg}; color:${letterData.badgeColor}; border:1px solid ${letterData.badgeBorder}; font-size:0.75rem; font-weight:800; padding:4px 14px; border-radius:999px; display:inline-block;">
+          ${letterData.badge}
+        </span>
+      </div>
+      <div style="width:60px; height:60px; border-radius:50%; background:${letterData.avatarBg}; color:#fff; font-size:26px; font-weight:900; display:flex; align-items:center; justify-content:center; margin:0 auto 12px auto; border:3px solid ${letterData.avatarBorder}; box-shadow:0 4px 14px rgba(0,0,0,0.15);">
+        ${letterData.avatar}
+      </div>
+      <h3 style="margin:0 0 10px 0; font-size:1.25rem; font-weight:900; color:${letterData.greetingColor};">
+        ${letterData.greeting}
+      </h3>
+      <div style="font-size:1.02rem; line-height:1.55; color:#1e293b; font-weight:600; margin-bottom:10px; font-style:italic; padding:0 8px;">
+        "${letterData.english}"
+      </div>
+      <div style="font-size:0.95rem; line-height:1.6; color:${letterData.arabicColor}; font-weight:700; margin-bottom:14px; direction:rtl; padding:0 8px;">
+        «${letterData.arabic}»
+      </div>
+      <div style="font-weight:900; font-size:1.05rem; color:${letterData.sigColor};">
+        ${letterData.signature}
+      </div>
+      <div style="font-size:0.72rem; color:var(--text-muted); margin-top:10px; opacity:0.8;">
+        ⏱️ Closing in 3 seconds • Tap anywhere to dismiss
+      </div>
+    `;
+
+    if (timerBar) {
+      timerBar.style.background = letterData.barColor;
+      timerBar.style.animation = "none";
+      void timerBar.offsetWidth; // trigger reflow
+      timerBar.style.animation = "welcome-shrink 3s linear forwards";
+    }
+
+    modal.classList.remove("closing");
+    modal.style.display = "flex";
+
+    this.welcomingLetterTimer = setTimeout(() => {
+      this.closeWelcomingLetter();
+    }, 3200);
+  }
+
+  closeWelcomingLetter() {
+    if (this.welcomingLetterTimer) {
+      clearTimeout(this.welcomingLetterTimer);
+      this.welcomingLetterTimer = null;
+    }
+    const modal = document.getElementById("welcomingLetterModal");
+    if (!modal) return;
+    modal.classList.add("closing");
+    setTimeout(() => {
+      modal.style.display = "none";
+      modal.classList.remove("closing");
+    }, 250);
   }
 
   toggleForceStudentView(force) {
@@ -963,6 +1110,7 @@ When any homework or exam is checked off as completed, it updates instantly acro
     this.renderStudyAssistant();
     this.renderDayChips();
     this.renderActiveTab();
+    this.showWelcomingLetter(kidId);
   }
 
   setTab(tabId) {
