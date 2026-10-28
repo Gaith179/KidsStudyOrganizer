@@ -140,6 +140,72 @@ class StudyApp {
     return map[dayKey] || { eve: "Evening Before", note: "Study on evening before" };
   }
 
+  isTaskPastDue(task) {
+    if (!task) return false;
+    const now = new Date();
+    const todayStr = now.toISOString().split("T")[0]; // YYYY-MM-DD (e.g. 2026-10-28)
+
+    // 1. Direct dueDate attribute check (e.g., "2026-10-05")
+    if (task.dueDate && typeof task.dueDate === "string") {
+      const match = task.dueDate.match(/\d{4}-\d{2}-\d{2}/);
+      if (match) {
+        return match[0] < todayStr;
+      }
+    }
+
+    // 2. School Week Schedule Mapping (Current week in AAJ timetable)
+    const schoolWeekDates = {
+      saturday: "2026-10-24",
+      sunday: "2026-10-25",
+      monday: "2026-10-26",
+      tuesday: "2026-10-27",
+      wednesday: "2026-10-28",
+      thursday: "2026-10-29",
+      friday: "2026-10-30"
+    };
+
+    // Check task.day if it contains a date string
+    if (task.day && typeof task.day === "string") {
+      const dayDateMatch = task.day.match(/\d{4}-\d{2}-\d{2}/);
+      if (dayDateMatch) {
+        return dayDateMatch[0] < todayStr;
+      }
+      const dayLower = task.day.toLowerCase();
+      for (const [dKey, dDate] of Object.entries(schoolWeekDates)) {
+        if (dayLower.includes(dKey)) {
+          return dDate < todayStr;
+        }
+      }
+    }
+
+    // Check task.id if it's a daily plan lesson task (e.g. "day_saturday_hw_0")
+    if (task.id && typeof task.id === "string" && task.id.startsWith("day_")) {
+      const parts = task.id.split("_");
+      if (parts.length >= 2) {
+        const dayKey = parts[1].toLowerCase();
+        if (schoolWeekDates[dayKey]) {
+          return schoolWeekDates[dayKey] < todayStr;
+        }
+      }
+    }
+
+    // 3. Dynamic Weekday Index Fallback
+    const schoolDayOrder = { saturday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4 };
+    const currentDayKey = this.selectedDay || this.getInitialDay();
+    const currentOrder = schoolDayOrder[currentDayKey] !== undefined ? schoolDayOrder[currentDayKey] : 3;
+
+    if (task.day && typeof task.day === "string") {
+      const dayLower = task.day.toLowerCase();
+      for (const [dKey, dOrder] of Object.entries(schoolDayOrder)) {
+        if (dayLower.includes(dKey)) {
+          return dOrder < currentOrder;
+        }
+      }
+    }
+
+    return false;
+  }
+
   getActiveKid() {
     return this.data.kids.find(k => k.id === this.activeKidId) || this.data.kids[0];
   }
@@ -403,6 +469,7 @@ class StudyApp {
             const taskId = `day_${dayKey}_hw_${idx}`;
             const isDone = !!completedState[taskId];
             const meta = db.getTaskMeta(taskId);
+            const isPastDue = this.isTaskPastDue({ id: taskId, day: dayKey, isExam: true });
             list.push({
               id: taskId,
               type: "Exam / Quiz",
@@ -413,6 +480,7 @@ class StudyApp {
               day: dayKey.charAt(0).toUpperCase() + dayKey.slice(1),
               ref: l.reference || l.notes || "",
               isDone: isDone,
+              isPastDue: isPastDue,
               meta: meta
             });
           }
@@ -427,6 +495,7 @@ class StudyApp {
             const taskId = `day_${dayKey}_hw_${idx}`;
             const isDone = !!completedState[taskId];
             const meta = db.getTaskMeta(taskId);
+            const isPastDue = this.isTaskPastDue({ id: taskId, day: dayKey });
             list.push({
               id: taskId,
               type: "Homework",
@@ -437,6 +506,7 @@ class StudyApp {
               day: dayKey.charAt(0).toUpperCase() + dayKey.slice(1),
               ref: l.reference || l.notes || "",
               isDone: isDone,
+              isPastDue: isPastDue,
               meta: meta
             });
           }
@@ -447,16 +517,19 @@ class StudyApp {
       (kid.assignments || []).forEach(a => {
         const isDone = a.status === "completed";
         const meta = db.getTaskMeta(a.id);
+        const isPastDue = this.isTaskPastDue(a);
         list.push({
           id: a.id,
           type: a.type || "Assignment",
-          isExam: a.type === "Quiz" || a.type === "Exam",
+          isExam: a.type === "Quiz" || a.type === "Exam" || a.type === "Test",
           isDailyPlan: false,
           subject: a.subject,
           title: a.title,
           day: a.dueDate ? `Due: ${a.dueDate}` : "",
+          dueDate: a.dueDate,
           ref: a.details || "",
           isDone: isDone,
+          isPastDue: isPastDue,
           meta: meta
         });
       });
@@ -470,15 +543,32 @@ class StudyApp {
     const ryanDone = ryanTasks.filter(t => t.isDone).length;
     const jadDone = jadTasks.filter(t => t.isDone).length;
 
-    const ryanFiltered = filter === "pending" ? ryanTasks.filter(t => !t.isDone) : ryanTasks;
-    const jadFiltered = filter === "pending" ? jadTasks.filter(t => !t.isDone) : jadTasks;
+    const ryanOverdue = ryanTasks.filter(t => !t.isDone && t.isPastDue).length;
+    const jadOverdue = jadTasks.filter(t => !t.isDone && t.isPastDue).length;
 
-    const totalPending = (ryanTasks.length - ryanDone) + (jadTasks.length - jadDone);
+    const ryanActive = ryanTasks.filter(t => !t.isDone && !t.isPastDue).length;
+    const jadActive = jadTasks.filter(t => !t.isDone && !t.isPastDue).length;
+
+    const filterTasks = (taskList) => {
+      if (filter === "pending") return taskList.filter(t => !t.isDone);
+      if (filter === "active") return taskList.filter(t => !t.isDone && !t.isPastDue);
+      if (filter === "overdue") return taskList.filter(t => !t.isDone && t.isPastDue);
+      if (filter === "completed") return taskList.filter(t => t.isDone);
+      return taskList; // "all"
+    };
+
+    const ryanFiltered = filterTasks(ryanTasks);
+    const jadFiltered = filterTasks(jadTasks);
+
+    const totalActive = ryanActive + jadActive;
+    const totalOverdue = ryanOverdue + jadOverdue;
+    const totalDone = ryanDone + jadDone;
+    const totalPending = totalActive + totalOverdue;
     const totalAll = ryanTasks.length + jadTasks.length;
     const ryanPts = (typeof rewardsSystem !== 'undefined' && rewardsSystem.getKidData) ? rewardsSystem.getKidData('ryan').points : 320;
     const jadPts = (typeof rewardsSystem !== 'undefined' && rewardsSystem.getKidData) ? rewardsSystem.getKidData('jad').points : 410;
 
-    const renderKidColumn = (kid, tasks, completedCount, totalCount, accentColor, cardClass) => {
+    const renderKidColumn = (kid, tasks, completedCount, totalCount, overdueCount, activeCount, accentColor, cardClass) => {
       const pct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 100;
       const isRyan = kid.id === "ryan";
 
@@ -492,8 +582,12 @@ class StudyApp {
                 <span class="parent-kid-subtitle">${isRyan ? "8th Grade Cambridge Checkpoint / IGCSE" : "5th Grade Cambridge Primary (CP)"}</span>
               </div>
             </div>
-            <div class="parent-progress-pill" style="background:${pct === 100 ? '#ecfdf5' : '#f1f5f9'}; color:${pct === 100 ? '#065f46' : '#334155'}; border:1px solid ${pct === 100 ? '#a7f3d0' : '#cbd5e1'};">
-              ${completedCount}/${totalCount} Done (${pct}%)
+            <div class="parent-progress-pill" style="display:flex; gap:6px; flex-wrap:wrap; align-items:center; background:${pct === 100 ? '#ecfdf5' : '#f8fafc'}; color:${pct === 100 ? '#065f46' : '#334155'}; border:1px solid ${pct === 100 ? '#a7f3d0' : '#cbd5e1'}; padding:4px 10px; border-radius:8px;">
+              <span style="font-weight:800;">${completedCount}/${totalCount} (${pct}%)</span>
+              <span style="opacity:0.35;">•</span>
+              <span style="color:#059669; font-weight:700;">✓ ${completedCount} Done</span>
+              ${overdueCount > 0 ? `<span style="color:#b91c1c; font-weight:800; background:#fee2e2; padding:1px 6px; border-radius:4px;">⚠️ ${overdueCount} Past Due</span>` : ''}
+              <span style="color:#2563eb; font-weight:700;">⏳ ${activeCount} Active</span>
             </div>
           </div>
 
@@ -558,12 +652,12 @@ class StudyApp {
           <div class="parent-task-list">
             ${tasks.length === 0 ? `
               <div style="text-align:center; padding:35px 20px; color:var(--text-muted);">
-                <div style="font-size:2.5rem; margin-bottom:8px;">${filter === 'pending' ? '🎉' : '📋'}</div>
+                <div style="font-size:2.5rem; margin-bottom:8px;">${filter === 'overdue' ? '🎉' : (filter === 'completed' ? '📝' : '📋')}</div>
                 <h4 style="margin:0 0 4px 0; color:var(--text-main); font-size:1rem;">
-                  ${filter === 'pending' ? 'All caught up!' : 'No tasks recorded'}
+                  ${filter === 'overdue' ? 'No overdue items!' : (filter === 'completed' ? 'No completed items yet' : 'All caught up!')}
                 </h4>
                 <p style="font-size:0.82rem; margin:0;">
-                  ${filter === 'pending' ? `All tasks for ${kid.name} are marked as completed!` : `No homework or exams found.`}
+                  ${filter === 'overdue' ? `All tasks for ${kid.name} were completed or are on schedule!` : `No items found in this filter.`}
                 </p>
               </div>
             ` : tasks.map(task => {
@@ -571,27 +665,43 @@ class StudyApp {
               const vn = this.getVoiceNote(task.id);
               const helpReq = (this.data.helpRequests || {})[task.id];
               const photo = db.getTaskPhoto(task.id);
+
               return `
-                <div class="parent-task-item ${task.isDone ? 'is-done' : ''} ${task.isExam && !task.isDone ? 'is-exam' : ''}">
-                  <button type="button" class="parent-checkbox-btn ${task.isDone ? 'checked' : ''}" 
-                          onclick="app.toggleTaskCompleted('${task.id}', ${!!task.isDailyPlan})" 
-                          title="Click to toggle completed status (Syncs to all 3 phones)">
-                    ${task.isDone ? "✓" : ""}
-                  </button>
+                <div class="parent-task-item ${task.isDone ? 'is-done' : (task.isPastDue ? 'is-overdue' : (task.isExam ? 'is-exam' : 'is-active'))}">
+                  <!-- Status Indicator: NO CHECKBOX if done OR past due date! -->
+                  ${task.isDone ? `
+                    <div class="parent-status-icon is-done" title="✓ Completed">
+                      <span>✓</span>
+                    </div>
+                  ` : (task.isPastDue ? `
+                    <div class="parent-status-icon is-overdue" title="⚠️ Past Due Date - Not Completed">
+                      <span>⚠️</span>
+                    </div>
+                  ` : `
+                    <button type="button" class="parent-checkbox-btn" 
+                            onclick="app.toggleTaskCompleted('${task.id}', ${!!task.isDailyPlan})" 
+                            title="Click to mark complete (Syncs across all 3 family mobiles)">
+                    </button>
+                  `)}
+
                   <div style="flex:1; min-width:0;">
                     <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:3px;">
                       <span style="font-size:0.75rem; font-weight:800; color:${accentColor}; display:inline-flex; align-items:center; gap:4px;">
                         <span>${this.getSubjectIcon(kid, task.subject)}</span>
                         <span>${task.subject}</span>
                       </span>
-                      <div style="display:flex; gap:4px; align-items:center;">
-                        ${task.isExam ? '<span style="font-size:0.65rem; background:#fee2e2; color:#b91c1c; font-weight:800; padding:1px 6px; border-radius:4px;">EXAM / QUIZ</span>' : ''}
+                      <div style="display:flex; gap:4px; align-items:center; flex-wrap:wrap;">
+                        ${task.isExam ? `
+                          <span style="font-size:0.68rem; font-weight:800; padding:2px 7px; border-radius:4px; ${task.isDone ? 'background:#ecfdf5; color:#065f46;' : (task.isPastDue ? 'background:#fee2e2; color:#b91c1c; border:1px solid #f87171;' : 'background:#fee2e2; color:#b91c1c;')}">
+                            ${task.isDone ? '✅ EXAM FINISHED' : (task.isPastDue ? '🚨 EXAM DATE PASSED' : '🚨 EXAM / QUIZ')}
+                          </span>
+                        ` : ''}
                         ${task.day ? `<span style="font-size:0.68rem; background:var(--bg-card-subtle); color:var(--text-muted); font-weight:700; padding:1px 6px; border-radius:4px; border:1px solid var(--border-color);">${task.day}</span>` : ''}
                       </div>
                     </div>
                     
                     <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px;">
-                      <div style="flex:1; font-size:0.88rem; font-weight:700; color:var(--text-main); ${task.isDone ? 'text-decoration:line-through; opacity:0.75;' : ''} line-height:1.35; margin-bottom:4px;">
+                      <div style="flex:1; font-size:0.88rem; font-weight:700; ${task.isDone ? 'color:var(--text-muted); text-decoration:line-through; opacity:0.8;' : (task.isPastDue ? 'color:#991b1b; font-weight:800;' : 'color:var(--text-main);')} line-height:1.35; margin-bottom:4px;">
                         ${task.title}
                       </div>
                       ${photo && photo.photoData ? `
@@ -610,9 +720,18 @@ class StudyApp {
 
                     <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px; margin-top:6px;">
                       <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                        <span style="font-size:0.72rem; font-weight:700; ${task.isDone ? 'color:#059669;' : 'color:#b91c1c;'}">
-                          ${task.isDone ? `✓ Completed ${whoDone ? `(${whoDone})` : ''}` : `⚠️ Pending / Not Done`}
+                        <span style="font-size:0.75rem; font-weight:800; display:inline-flex; align-items:center; gap:4px; ${task.isDone ? 'color:#059669;' : (task.isPastDue ? 'color:#b91c1c;' : 'color:var(--primary);')}">
+                          ${task.isDone 
+                            ? `✓ Completed ${whoDone ? `(${whoDone})` : ''}` 
+                            : (task.isPastDue 
+                                ? `⚠️ Past Due Date (Not Completed)` 
+                                : `⏳ Active / Due Today`)}
                         </span>
+                        ${task.isDone ? `
+                          <button type="button" style="background:none; border:none; color:var(--text-muted); font-size:0.72rem; cursor:pointer; text-decoration:underline;" onclick="app.toggleTaskCompleted('${task.id}', ${!!task.isDailyPlan})" title="Marked by mistake? Reopen">↩ Reopen</button>
+                        ` : (task.isPastDue ? `
+                          <button type="button" class="btn-xs-study" style="background:#fff; border:1px solid #fca5a5; color:#991b1b; padding:2px 8px;" onclick="app.toggleTaskCompleted('${task.id}', ${!!task.isDailyPlan})" title="Mark completed late">✓ Mark Done Late</button>
+                        ` : '')}
                         ${vn && (vn.audio || vn.audioData) ? `
                           <button type="button" class="voice-pill-btn" onclick="app.playVoiceNote('${task.id}', this)" title="Listen to Parent Voice Note">
                             <span>🔊</span>
@@ -698,12 +817,18 @@ class StudyApp {
         </div>
 
         <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-          <div class="parent-filter-pills">
-            <button type="button" class="parent-filter-btn ${filter === 'pending' ? 'active' : ''}" onclick="app.setParentFilter('pending')">
-              ⚠️ Not Done Yet (${totalPending})
-            </button>
+          <div class="parent-filter-pills" style="display:flex; gap:6px; flex-wrap:wrap;">
             <button type="button" class="parent-filter-btn ${filter === 'all' ? 'active' : ''}" onclick="app.setParentFilter('all')">
-              📋 All Items (${totalAll})
+              📋 All (${totalAll})
+            </button>
+            <button type="button" class="parent-filter-btn ${filter === 'active' ? 'active' : ''}" onclick="app.setParentFilter('active')">
+              ⏳ Active (${totalActive})
+            </button>
+            <button type="button" class="parent-filter-btn ${filter === 'overdue' ? 'active' : ''}" style="${totalOverdue > 0 ? 'border-color:#fca5a5; color:#991b1b; font-weight:800;' : ''}" onclick="app.setParentFilter('overdue')">
+              ⚠️ Past Due (${totalOverdue})
+            </button>
+            <button type="button" class="parent-filter-btn ${filter === 'completed' ? 'active' : ''}" onclick="app.setParentFilter('completed')">
+              ✓ Done (${totalDone})
             </button>
           </div>
 
@@ -747,9 +872,9 @@ class StudyApp {
             <div>
               <div style="font-size:0.75rem; text-transform:uppercase; font-weight:800; color:var(--text-muted); letter-spacing:0.5px;">Brother Study Quest • Weekly Momentum</div>
               <div style="font-size:1.05rem; font-weight:900; color:var(--text-main); margin-top:2px;">
-                👦 Ryan: <strong style="color:#4f46e5;">⭐ ${ryanPts} pts</strong> (${ryanDone}/${ryanTasks.length} Completed)
+                👦 Ryan: <strong style="color:#4f46e5;">⭐ ${ryanPts} pts</strong> (${ryanDone}/${ryanTasks.length} Done${ryanOverdue > 0 ? ` • <span style="color:#b91c1c;">⚠️ ${ryanOverdue} Past Due</span>` : ''})
                 <span style="margin:0 8px; color:var(--border-color); font-weight:normal;">•</span>
-                👦 Jad: <strong style="color:#059669;">⭐ ${jadPts} pts</strong> (${jadDone}/${jadTasks.length} Completed)
+                👦 Jad: <strong style="color:#059669;">⭐ ${jadPts} pts</strong> (${jadDone}/${jadTasks.length} Done${jadOverdue > 0 ? ` • <span style="color:#b91c1c;">⚠️ ${jadOverdue} Past Due</span>` : ''})
               </div>
             </div>
           </div>
@@ -764,10 +889,10 @@ class StudyApp {
 
       <div class="parent-kids-grid">
         <!-- Ryan Column (Left) -->
-        ${renderKidColumn(ryan, ryanFiltered, ryanDone, ryanTasks.length, "#4f46e5", "ryan-parent-card")}
+        ${renderKidColumn(ryan, ryanFiltered, ryanDone, ryanTasks.length, ryanOverdue, ryanActive, "#4f46e5", "ryan-parent-card")}
 
         <!-- Jad Column (Right) -->
-        ${renderKidColumn(jad, jadFiltered, jadDone, jadTasks.length, "#059669", "jad-parent-card")}
+        ${renderKidColumn(jad, jadFiltered, jadDone, jadTasks.length, jadOverdue, jadActive, "#059669", "jad-parent-card")}
       </div>
     `;
   }
@@ -1487,6 +1612,14 @@ When any homework or exam is checked off as completed, it updates instantly acro
     }
 
     const finishedTasks = allTasks.filter(t => t.isDailyPlan ? !!completedState[t.id] : t.status === "completed");
+    const overdueTasks = allTasks.filter(t => {
+      const isDone = t.isDailyPlan ? !!completedState[t.id] : t.status === "completed";
+      return !isDone && this.isTaskPastDue(t);
+    });
+    const activeTasks = allTasks.filter(t => {
+      const isDone = t.isDailyPlan ? !!completedState[t.id] : t.status === "completed";
+      return !isDone && !this.isTaskPastDue(t);
+    });
     const unfinishedTasks = allTasks.filter(t => t.isDailyPlan ? !completedState[t.id] : t.status !== "completed");
     const pct = allTasks.length > 0 ? Math.round((finishedTasks.length / allTasks.length) * 100) : 100;
 
@@ -1512,11 +1645,23 @@ When any homework or exam is checked off as completed, it updates instantly acro
 
       ${unfinishedTasks.length > 0 ? `
         <div style="background:#fff1f2; border:1.5px solid #fecdd3; border-radius:8px; padding:10px 14px; margin-bottom:12px;">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <strong style="color:var(--high-priority); font-size:0.85rem;">⚠️ ${unfinishedTasks.length} Pending Tasks to Complete (Not Done Yet)</strong>
-            <span style="font-size:0.78rem; font-weight:800; color:#b91c1c;">${pct}% Finished (${finishedTasks.length}/${allTasks.length})</span>
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              ${overdueTasks.length > 0 ? `
+                <span style="background:#fee2e2; border:1px solid #f87171; color:#991b1b; font-weight:800; font-size:0.78rem; padding:2px 8px; border-radius:6px;">
+                  ⚠️ ${overdueTasks.length} Past Due Date
+                </span>
+              ` : ''}
+              <span style="background:#eff6ff; border:1px solid #bfdbfe; color:#1e40af; font-weight:800; font-size:0.78rem; padding:2px 8px; border-radius:6px;">
+                ⏳ ${activeTasks.length} Active
+              </span>
+              <span style="background:#ecfdf5; border:1px solid #a7f3d0; color:#065f46; font-weight:800; font-size:0.78rem; padding:2px 8px; border-radius:6px;">
+                ✓ ${finishedTasks.length} Done
+              </span>
+            </div>
+            <span style="font-size:0.8rem; font-weight:800; color:#b91c1c;">${pct}% Finished (${finishedTasks.length}/${allTasks.length})</span>
           </div>
-          <div style="background:#fee2e2; height:6px; border-radius:3px; margin-top:6px; overflow:hidden;">
+          <div style="background:#fee2e2; height:6px; border-radius:3px; margin-top:8px; overflow:hidden;">
             <div style="background:#10b981; height:100%; width:${pct}%; transition:width 0.3s ease;"></div>
           </div>
         </div>
@@ -1550,6 +1695,8 @@ When any homework or exam is checked off as completed, it updates instantly acro
         `;
       }
       const isDone = task.isDailyPlan ? !!completedState[task.id] : task.status === "completed";
+      const isPastDue = this.isTaskPastDue(task);
+      const isExam = !!task.isExam;
       const meta = db.getTaskMeta(task.id);
       const whoDone = meta && meta.updatedBy ? `by ${meta.updatedBy}` : (meta && meta.time ? meta.time : "");
 
@@ -1563,13 +1710,23 @@ When any homework or exam is checked off as completed, it updates instantly acro
       const photo = db.getTaskPhoto(task.id);
 
       return `
-        <div class="hw-task-item ${isDone ? 'completed' : ''}" id="task_row_${task.id}" style="${!isDone ? (task.isExam ? 'border-left: 4px solid #ef4444; background:#fffdfd;' : 'border-left: 4px solid var(--primary);') : 'border-left: 4px solid #10b981;'} padding-left: 10px;">
-          <button type="button" class="hw-check-btn" onclick="app.toggleTaskCompleted('${task.id}', ${!!task.isDailyPlan})" title="Mark complete (Instant live sync across devices)">
-            ${isDone ? "✓" : ""}
-          </button>
+        <div class="hw-task-item ${isDone ? 'completed' : (isPastDue ? 'is-overdue' : (isExam ? 'is-exam' : ''))}" id="task_row_${task.id}" style="${isDone ? 'border-left: 4px solid #10b981; background:#f0fdf4;' : (isPastDue ? 'border-left: 4px solid #dc2626 !important; background:#fff5f5;' : (isExam ? 'border-left: 4px solid #ef4444; background:#fffdfd;' : 'border-left: 4px solid var(--primary);'))} padding-left: 10px;">
+          <!-- Status Indicator: NO CHECKBOX if done OR past due! -->
+          ${isDone ? `
+            <div class="hw-status-icon is-done" title="✓ Completed">
+              <span>✓</span>
+            </div>
+          ` : (isPastDue ? `
+            <div class="hw-status-icon is-overdue" title="⚠️ Past Due Date - Not Completed">
+              <span>⚠️</span>
+            </div>
+          ` : `
+            <button type="button" class="hw-check-btn" onclick="app.toggleTaskCompleted('${task.id}', ${!!task.isDailyPlan})" title="Mark complete (Instant live sync across devices)">
+            </button>
+          `)}
           <div class="hw-task-content">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
-              <div class="hw-task-title" style="text-decoration:${isDone ? 'line-through' : 'none'}; opacity:${isDone ? 0.7 : 1}; font-weight:${task.isExam ? '800' : '600'}; color:${task.isExam && !isDone ? '#b91c1c' : 'inherit'};">
+              <div class="hw-task-title" style="${isDone ? 'text-decoration:line-through; opacity:0.75;' : (isPastDue ? 'color:#991b1b; font-weight:800;' : (isExam ? 'font-weight:800; color:#b91c1c;' : 'font-weight:600; color:inherit;'))}">
                 ${task.title}
               </div>
               ${photo && photo.photoData ? `
@@ -1584,9 +1741,48 @@ When any homework or exam is checked off as completed, it updates instantly acro
             ` : ''}
             <div class="hw-task-meta" style="display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:4px;">
               ${dueBadge}
-              ${isDone 
-                ? `<span style="font-size:0.75rem; color:#10b981; font-weight:700;">✓ Completed ${whoDone ? `<span style="color:#047857; font-weight:800;">(${whoDone})</span>` : ''}</span>` 
-                : `<span style="font-size:0.75rem; color:var(--high-priority); font-weight:800;">● Pending (Not Done) ${whoDone ? `<span style="font-weight:600; opacity:0.85; font-size:0.72rem;">(marked pending ${whoDone})</span>` : ''}</span>`}
+              ${isDone ? `
+                <span style="font-size:0.75rem; color:#065f46; font-weight:800; background:#ecfdf5; border:1px solid #a7f3d0; padding:2px 8px; border-radius:999px;">✓ Completed ${whoDone ? `(${whoDone})` : ''}</span>
+                <button type="button" style="background:none; border:none; color:var(--text-muted); font-size:0.72rem; cursor:pointer; text-decoration:underline;" onclick="app.toggleTaskCompleted('${task.id}', ${!!task.isDailyPlan})" title="Marked by mistake? Reopen">↩ Reopen</button>
+              ` : (isPastDue ? `
+                <span style="font-size:0.75rem; color:#991b1b; font-weight:800; background:#fee2e2; border:1px solid #f87171; padding:2px 8px; border-radius:999px;">⚠️ ${isExam ? 'Past Exam Date (Not Completed)' : 'Past Due Date (Not Completed)'}</span>
+                <button type="button" class="btn-xs-study" style="background:#fff; border:1px solid #fca5a5; color:#991b1b; font-weight:700;" onclick="app.toggleTaskCompleted('${task.id}', ${!!task.isDailyPlan})" title="Submit completed late">✓ Mark Done Late</button>
+              ` : `
+                <span style="font-size:0.75rem; color:var(--primary); font-weight:800; background:#eff6ff; border:1px solid #bfdbfe; padding:2px 8px; border-radius:999px;">⏳ Active (Due Today)</span>
+              `)}
+              
+              <button type="button" class="btn-xs-study" onclick="app.triggerPhotoCapture('${task.id}', '${(task.rawTitle || task.title || '').replace(/'/g, "\\'")}')" title="Upload workbook page photo for parents">
+                📸 ${photo ? 'Photo ✓' : 'Photo'}
+              </button>
+              <button type="button" class="btn-xs-study" style="background:#e0e7ff; color:#3730a3; border-color:#c7d2fe;" onclick="cambridgeQuizzer.startQuiz('${this.activeKidId}', '${task.subject || 'Mathematics'}', '${(task.rawTitle || task.title || '').replace(/'/g, "\\'")}')" title="Take a 3-question Cambridge practice quiz">
+                🧠 Quiz (+15 pts)
+              </button>
+              <button type="button" class="btn-xs-study" style="background:#fef3c7; color:#92400e; border-color:#fcd34d;" onclick="app.requestHelpOnTask('${task.id}', '${(task.rawTitle || task.title || '').replace(/'/g, "\\'")}', '${task.subject || ''}')" title="Ask Father or Mother for assistance">
+                ❓ Ask Help
+              </button>
+              <button type="button" class="btn-xs-study" onclick="app.searchTopic('${task.subject || ''}', '${(task.rawTitle || task.title || '').replace(/'/g, "\\'")}')" title="Search video lessons on YouTube">
+                🎥 Video Help
+              </button>
+              ${vn && (vn.audio || vn.audioData) ? `
+                <div class="voice-note-bar" style="background:#eef2ff; border:1px solid #c7d2fe; padding:2px 8px; border-radius:999px;">
+                  <button type="button" class="voice-pill-btn" onclick="app.playVoiceNote('${task.id}', this)" title="Play Parent Voice Note">
+                    <span>🔊</span>
+                    <span>Note (${vn.from || 'Parent'})</span>
+                  </button>
+                  ${this.isParentRole() ? `
+                    <button type="button" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:0.75rem;" onclick="app.deleteVoiceNote('${task.id}')">✕</button>
+                  ` : ''}
+                </div>
+              ` : (this.isParentRole() ? `
+                <button type="button" class="btn-xs-study" onclick="app.startVoiceRecording('${task.id}', '${(task.rawTitle || task.title || '').replace(/'/g, "\\'")}')" title="Record Voice Note for child">
+                  <span>🎙️ Voice Note</span>
+                </button>
+              ` : '')}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join("");
               
               <button type="button" class="btn-xs-study" onclick="app.triggerPhotoCapture('${task.id}', '${(task.rawTitle || task.title || '').replace(/'/g, "\\'")}')" title="Upload workbook page photo for parents">
                 📸 ${photo ? 'Photo ✓' : 'Photo'}
@@ -1737,6 +1933,7 @@ When any homework or exam is checked off as completed, it updates instantly acro
             ${dayLessons.some(l => (l.topic && l.topic.toLowerCase().includes("long weekend")) || (l.outcome && l.outcome.toLowerCase().includes("long weekend")) || (l.outcome && l.outcome.includes("عطلة"))) ? "" : dayLessons.map((lesson, idx) => {
               const taskId = `day_${dayKey}_hw_${idx}`;
               const isHwDone = !!completedState[taskId];
+              const isPastDue = this.isTaskPastDue({ id: taskId, day: dayKey });
               const hwText = lesson.assignment || lesson.homework || "";
               const refText = lesson.reference || lesson.notes || "";
               const examText = lesson.exam || "";
@@ -1755,35 +1952,57 @@ When any homework or exam is checked off as completed, it updates instantly acro
                   ` : ""}
 
                   ${examText ? `
-                    <div style="background:#fef2f2; border:1.5px solid #f87171; border-radius:6px; padding:6px 8px; margin-top:6px;">
+                    <div style="background:${isHwDone ? '#ecfdf5' : (isPastDue ? '#fef2f2' : '#fef2f2')}; border:1.5px solid ${isHwDone ? '#10b981' : (isPastDue ? '#ef4444' : '#f87171')}; border-radius:6px; padding:6px 8px; margin-top:6px;">
                       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;">
-                        <span style="font-size:0.65rem; font-weight:800; background:#ef4444; color:#fff; padding:1px 5px; border-radius:3px; text-transform:uppercase;">Exam / Quiz</span>
-                        <span style="font-size:0.68rem; font-weight:700; color:#b91c1c; background:#fee2e2; padding:1px 5px; border-radius:3px;">🚨 Revise on ${prepInfo.eve}</span>
+                        <span style="font-size:0.65rem; font-weight:800; background:${isHwDone ? '#10b981' : '#ef4444'}; color:#fff; padding:1px 5px; border-radius:3px; text-transform:uppercase;">Exam / Quiz</span>
+                        <span style="font-size:0.68rem; font-weight:800; color:${isHwDone ? '#065f46' : '#b91c1c'}; background:${isHwDone ? '#d1fae5' : '#fee2e2'}; padding:1px 5px; border-radius:3px;">
+                          ${isHwDone ? '✅ Exam Finished' : (isPastDue ? '🚨 Exam Date Passed' : `🚨 Revise on ${prepInfo.eve}`)}
+                        </span>
                       </div>
-                      <div style="font-size:0.77rem; font-weight:700; color:#991b1b; line-height:1.3;">${examText}</div>
+                      <div style="font-size:0.77rem; font-weight:700; color:${isHwDone ? '#065f46' : '#991b1b'}; line-height:1.3; ${isHwDone ? 'text-decoration:line-through;' : ''}">${examText}</div>
                     </div>
                   ` : ""}
 
                   ${hwText ? `
-                    <div class="week-lesson-hw" style="cursor:pointer; display:flex; align-items:flex-start; gap:6px; background:${isHwDone ? '#ecfdf5' : '#f0fdf4'}; padding:6px 8px; border-radius:6px; margin-top:6px; border:1.5px solid ${isHwDone ? '#10b981' : '#86efac'};" onclick="app.toggleTaskCompleted('${taskId}', true)" title="Click to toggle status (Syncs across devices)">
-                      <span style="font-size:1.05rem; line-height:1.2;">${isHwDone ? '✅' : '⬜'}</span>
-                      <div style="flex:1;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
-                          <span style="font-size:0.65rem; font-weight:800; background:#10b981; color:#fff; padding:1px 5px; border-radius:3px; text-transform:uppercase;">Assignment</span>
-                          <span style="font-size:0.68rem; font-weight:700; color:#065f46; background:#d1fae5; padding:1px 5px; border-radius:3px;">⏰ Solve on ${prepInfo.eve}</span>
+                    ${isHwDone ? `
+                      <div class="week-lesson-hw is-done" style="display:flex; align-items:flex-start; gap:6px; background:#ecfdf5; padding:6px 8px; border-radius:6px; margin-top:6px; border:1.5px solid #10b981;">
+                        <span style="font-size:1.05rem; line-height:1.2; color:#10b981;">✅</span>
+                        <div style="flex:1;">
+                          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
+                            <span style="font-size:0.65rem; font-weight:800; background:#10b981; color:#fff; padding:1px 5px; border-radius:3px; text-transform:uppercase;">Assignment</span>
+                            <span style="font-size:0.68rem; font-weight:700; color:#065f46; background:#d1fae5; padding:1px 5px; border-radius:3px;">✓ Finished ${meta && meta.updatedBy ? `by ${meta.updatedBy}` : ''}</span>
+                          </div>
+                          <div style="font-size:0.77rem; text-decoration:line-through; color:#065f46;">${hwText}</div>
                         </div>
-                        <div style="font-size:0.77rem; ${isHwDone ? 'text-decoration:line-through; color:#065f46;' : 'font-weight:700; color:#14532d;'}">${hwText}</div>
-                        ${isHwDone && meta && meta.updatedBy ? `
-                          <div style="font-size:0.68rem; color:#047857; margin-top:3px; font-weight:700;">
-                            ✓ Completed by: ${meta.updatedBy}
-                          </div>
-                        ` : (!isHwDone && meta && meta.updatedBy ? `
-                          <div style="font-size:0.68rem; color:#b91c1c; margin-top:3px; font-weight:700;">
-                            ● Pending (marked by: ${meta.updatedBy})
-                          </div>
-                        ` : '')}
                       </div>
-                    </div>
+                    ` : (isPastDue ? `
+                      <div class="week-lesson-hw is-overdue" style="display:flex; align-items:flex-start; gap:6px; background:#fff5f5; padding:6px 8px; border-radius:6px; margin-top:6px; border:1.5px solid #ef4444;">
+                        <span style="font-size:1.05rem; line-height:1.2; color:#ef4444;">⚠️</span>
+                        <div style="flex:1;">
+                          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
+                            <span style="font-size:0.65rem; font-weight:800; background:#ef4444; color:#fff; padding:1px 5px; border-radius:3px; text-transform:uppercase;">Past Due Date</span>
+                            <span style="font-size:0.68rem; font-weight:800; color:#b91c1c; background:#fee2e2; padding:1px 5px; border-radius:3px;">Not Completed</span>
+                          </div>
+                          <div style="font-size:0.77rem; font-weight:700; color:#991b1b;">${hwText}</div>
+                        </div>
+                      </div>
+                    ` : `
+                      <div class="week-lesson-hw is-active" style="cursor:pointer; display:flex; align-items:flex-start; gap:6px; background:#f0fdf4; padding:6px 8px; border-radius:6px; margin-top:6px; border:1.5px solid #86efac;" onclick="app.toggleTaskCompleted('${taskId}', true)" title="Click to toggle status (Syncs across devices)">
+                        <span style="font-size:1.05rem; line-height:1.2;">⬜</span>
+                        <div style="flex:1;">
+                          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
+                            <span style="font-size:0.65rem; font-weight:800; background:#10b981; color:#fff; padding:1px 5px; border-radius:3px; text-transform:uppercase;">Assignment</span>
+                            <span style="font-size:0.68rem; font-weight:700; color:#065f46; background:#d1fae5; padding:1px 5px; border-radius:3px;">⏰ Solve on ${prepInfo.eve}</span>
+                          </div>
+                          <div style="font-size:0.77rem; font-weight:700; color:#14532d;">${hwText}</div>
+                          ${meta && meta.updatedBy ? `
+                            <div style="font-size:0.68rem; color:#b91c1c; margin-top:3px; font-weight:700;">
+                              ● Pending (marked by: ${meta.updatedBy})
+                            </div>
+                          ` : ''}
+                        </div>
+                      </div>
+                    `)}
                   ` : ""}
 
                   ${refText ? `
@@ -1835,44 +2054,44 @@ When any homework or exam is checked off as completed, it updates instantly acro
 
     const todayStr = new Date().toISOString().split("T")[0];
 
-    // Automatically detect and mark past exams as completed
+    // Detect past due items without falsely marking incomplete exams as completed
     (kid.assignments || []).forEach(asg => {
-      if (asg.dueDate && asg.dueDate < todayStr) {
-        asg.isPast = true;
-        if (asg.type === "Quiz" || asg.type === "Test" || asg.type === "Exam") {
-          asg.isPastExam = true;
-          if (asg.status === "pending") {
-            asg.status = "completed"; // Automatically completed after next day
-          }
-        }
+      const isPastDue = this.isTaskPastDue(asg);
+      asg.isPast = isPastDue;
+      if (asg.type === "Quiz" || asg.type === "Test" || asg.type === "Exam") {
+        asg.isPastExam = isPastDue;
       }
     });
 
     let items = kid.assignments || [];
     if (this.assignmentFilter === "pending") {
-      items = items.filter(a => a.status === "pending");
+      items = items.filter(a => a.status !== "completed" && !this.isTaskPastDue(a));
+    } else if (this.assignmentFilter === "overdue") {
+      items = items.filter(a => a.status !== "completed" && this.isTaskPastDue(a));
     } else if (this.assignmentFilter === "completed") {
       items = items.filter(a => a.status === "completed");
     } else if (this.assignmentFilter === "quiz") {
-      items = items.filter(a => (a.type === "Quiz" || a.type === "Test" || a.priority === "high") && !a.isPast);
-    } else if (this.assignmentFilter === "past_exams") {
-      items = items.filter(a => a.isPast);
+      items = items.filter(a => (a.type === "Quiz" || a.type === "Test" || a.type === "Exam"));
     }
 
-    const pastCount = (kid.assignments || []).filter(a => a.isPast).length;
-    const pendingCount = (kid.assignments || []).filter(a => a.status === "pending").length;
+    const allCount = (kid.assignments || []).length;
+    const pendingActiveCount = (kid.assignments || []).filter(a => a.status !== "completed" && !this.isTaskPastDue(a)).length;
+    const overdueCount = (kid.assignments || []).filter(a => a.status !== "completed" && this.isTaskPastDue(a)).length;
+    const completedCount = (kid.assignments || []).filter(a => a.status === "completed").length;
+    const quizCount = (kid.assignments || []).filter(a => (a.type === "Quiz" || a.type === "Test" || a.type === "Exam")).length;
 
     // Update filter bar
     const filterBar = document.querySelector(".asg-filter-bar");
     if (filterBar) {
       filterBar.innerHTML = `
-        <button type="button" class="filter-btn ${this.assignmentFilter === 'all' ? 'active' : ''}" data-filter="all" onclick="app.setAssignmentFilter('all')">All Items (${(kid.assignments || []).length})</button>
-        <button type="button" class="filter-btn ${this.assignmentFilter === 'pending' ? 'active' : ''}" data-filter="pending" onclick="app.setAssignmentFilter('pending')">⚠️ Not Done Yet (${pendingCount})</button>
-        <button type="button" class="filter-btn ${this.assignmentFilter === 'quiz' ? 'active' : ''}" data-filter="quiz" onclick="app.setAssignmentFilter('quiz')">🔥 Upcoming Quizzes</button>
-        <button type="button" class="filter-btn ${this.assignmentFilter === 'completed' ? 'active' : ''}" data-filter="completed" onclick="app.setAssignmentFilter('completed')">✓ Finished Tasks</button>
-        ${pastCount > 0 ? `
-          <button type="button" class="btn-secondary" style="font-size:0.75rem; padding:4px 10px; border-color:#fca5a5; color:var(--high-priority); margin-left:auto;" onclick="app.removePastExams()" title="Clear past finished exams">
-            🗑 Clean ${pastCount} Finished Past Exams
+        <button type="button" class="filter-btn ${this.assignmentFilter === 'all' ? 'active' : ''}" data-filter="all" onclick="app.setAssignmentFilter('all')">All Items (${allCount})</button>
+        <button type="button" class="filter-btn ${this.assignmentFilter === 'pending' ? 'active' : ''}" data-filter="pending" onclick="app.setAssignmentFilter('pending')">⏳ Active / Today (${pendingActiveCount})</button>
+        <button type="button" class="filter-btn ${this.assignmentFilter === 'overdue' ? 'active' : ''}" style="${overdueCount > 0 ? 'border-color:#fca5a5; color:#991b1b; font-weight:800;' : ''}" data-filter="overdue" onclick="app.setAssignmentFilter('overdue')">⚠️ Past Due (${overdueCount})</button>
+        <button type="button" class="filter-btn ${this.assignmentFilter === 'quiz' ? 'active' : ''}" data-filter="quiz" onclick="app.setAssignmentFilter('quiz')">🔥 Quizzes & Exams (${quizCount})</button>
+        <button type="button" class="filter-btn ${this.assignmentFilter === 'completed' ? 'active' : ''}" data-filter="completed" onclick="app.setAssignmentFilter('completed')">✓ Completed (${completedCount})</button>
+        ${overdueCount > 0 ? `
+          <button type="button" class="btn-secondary" style="font-size:0.75rem; padding:4px 10px; border-color:#fca5a5; color:var(--high-priority); margin-left:auto;" onclick="app.removePastExams()" title="Clear past exams">
+            🗑 Clean Past Items
           </button>
         ` : ""}
       `;
@@ -1881,9 +2100,9 @@ When any homework or exam is checked off as completed, it updates instantly acro
     if (items.length === 0) {
       container.innerHTML = `
         <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-muted); background: var(--bg-card); border-radius: var(--radius-lg); border: 1px dashed var(--border-color);">
-          <div style="font-size: 36px; margin-bottom: 10px;">📋</div>
-          <h4>No assignments found in this category</h4>
-          <p>All items in this filter are cleared!</p>
+          <div style="font-size: 36px; margin-bottom: 10px;">${this.assignmentFilter === 'overdue' ? '🎉' : '📋'}</div>
+          <h4>${this.assignmentFilter === 'overdue' ? 'No overdue items!' : 'No assignments found in this category'}</h4>
+          <p>${this.assignmentFilter === 'overdue' ? 'All tasks are either completed or scheduled for today/upcoming!' : 'All items in this filter are cleared!'}</p>
         </div>
       `;
       return;
@@ -1891,24 +2110,48 @@ When any homework or exam is checked off as completed, it updates instantly acro
 
     container.innerHTML = items.map(asg => {
       const isDone = asg.status === "completed";
+      const isPastDue = this.isTaskPastDue(asg);
+      const isExam = asg.type === "Quiz" || asg.type === "Test" || asg.type === "Exam";
       const meta = db.getTaskMeta(asg.id);
       const whoDone = meta && meta.updatedBy ? `by ${meta.updatedBy}` : "";
 
+      let cardClass = "asg-card";
+      let cardStyle = "";
+      if (isDone) {
+        cardClass += " is-completed";
+        cardStyle = "border-left: 5px solid #10b981; background: #f8fafc; opacity: 0.9;";
+      } else if (isPastDue) {
+        cardClass += " is-overdue";
+        cardStyle = "border-left: 5px solid #dc2626 !important; background: #fff8f8; box-shadow: 0 4px 14px rgba(220, 38, 38, 0.12);";
+      } else {
+        cardStyle = `border-left: 5px solid ${asg.priority === 'high' ? 'var(--high-priority)' : asg.priority === 'medium' ? 'var(--med-priority)' : 'var(--low-priority)'};`;
+      }
+
       return `
-        <div class="asg-card" style="border-left: 5px solid ${asg.priority === 'high' ? 'var(--high-priority)' : asg.priority === 'medium' ? 'var(--med-priority)' : 'var(--low-priority)'}; opacity: ${isDone ? 0.75 : 1}; ${!isDone ? 'box-shadow: 0 4px 12px rgba(239, 68, 68, 0.08);' : ''}">
+        <div class="${cardClass}" style="${cardStyle}">
           <div class="asg-card-top">
-            <span class="asg-type-badge ${asg.type}">${asg.type || 'Task'}</span>
             <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-              ${asg.isPastExam ? `<span style="font-size:0.75rem; background:#ecfdf5; border:1px solid #a7f3d0; color:#065f46; font-weight:800; padding:2px 8px; border-radius:999px;">✓ Exam Finished</span>` : ""}
-              ${isDone 
-                ? `<span style="font-size:0.75rem; background:#ecfdf5; border:1px solid #a7f3d0; color:#065f46; font-weight:800; padding:2px 8px; border-radius:999px;">✓ Completed ${whoDone ? `(${whoDone})` : ''}</span>` 
-                : `<span style="font-size:0.75rem; background:#fef2f2; border:1px solid #fecdd3; color:#b91c1c; font-weight:800; padding:2px 8px; border-radius:999px;">⚠️ Pending ${whoDone ? `(marked by ${meta.updatedBy})` : ''}</span>`}
-              <span class="due-badge ${asg.priority === 'high' ? 'urgent' : asg.priority === 'medium' ? 'warning' : 'normal'}">
+              <span class="asg-type-badge ${asg.type}">${asg.type || 'Task'}</span>
+              ${isExam ? `
+                <span style="font-size:0.72rem; font-weight:800; padding:2px 7px; border-radius:4px; ${isDone ? 'background:#ecfdf5; color:#065f46;' : (isPastDue ? 'background:#fee2e2; color:#b91c1c; border:1px solid #f87171;' : 'background:#fee2e2; color:#b91c1c;')}">
+                  ${isDone ? '✅ EXAM FINISHED' : (isPastDue ? '🚨 EXAM DATE PASSED' : '🚨 EXAM / QUIZ')}
+                </span>
+              ` : ''}
+            </div>
+            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+              ${isDone ? `
+                <span style="font-size:0.75rem; background:#ecfdf5; border:1px solid #a7f3d0; color:#065f46; font-weight:800; padding:2px 8px; border-radius:999px;">✓ Completed ${whoDone ? `(${whoDone})` : ''}</span>
+              ` : (isPastDue ? `
+                <span style="font-size:0.75rem; background:#fee2e2; border:1px solid #f87171; color:#991b1b; font-weight:800; padding:2px 8px; border-radius:999px;">⚠️ Past Due Date (Not Completed)</span>
+              ` : `
+                <span style="font-size:0.75rem; background:#eff6ff; border:1px solid #bfdbfe; color:#1e40af; font-weight:800; padding:2px 8px; border-radius:999px;">⏳ Active</span>
+              `)}
+              <span class="due-badge ${isPastDue && !isDone ? 'urgent' : (asg.priority === 'high' ? 'urgent' : asg.priority === 'medium' ? 'warning' : 'normal')}">
                 📅 Due: ${asg.dueDate}
               </span>
             </div>
           </div>
-          <div class="asg-title" style="text-decoration: ${isDone ? 'line-through' : 'none'}; cursor:pointer;" onclick="app.toggleTaskCompleted('${asg.id}', false)" title="Click to toggle status">
+          <div class="asg-title" style="${isDone ? 'text-decoration: line-through; opacity:0.75;' : (isPastDue ? 'color:#991b1b; font-weight:800;' : '')}">
             ${asg.title}
           </div>
           <div style="font-size: 0.82rem; font-weight: 700; color: var(--primary); margin-bottom: 6px;">
@@ -1923,13 +2166,28 @@ When any homework or exam is checked off as completed, it updates instantly acro
             </div>
           ` : ""}
 
-          <div class="asg-footer">
-            <button type="button" class="btn-secondary" style="padding: 6px 14px; font-size: 0.82rem; font-weight:700; cursor:pointer; ${isDone ? 'background:#f1f5f9; color:#475569;' : 'background:var(--primary); color:#fff;'}" onclick="app.toggleTaskCompleted('${asg.id}', false)">
-              ${isDone ? '↩ Mark as Pending' : '✓ Mark as Completed'}
-            </button>
-            <button type="button" style="background:none; border:none; color:var(--high-priority); cursor:pointer; font-size:0.8rem;" onclick="app.deleteAssignment('${asg.id}')">
-              🗑 Delete
-            </button>
+          <!-- Footer: NO CHECKBOX for completed OR past due! -->
+          <div class="asg-footer" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+            ${isDone ? `
+              <span style="font-size:0.8rem; color:#059669; font-weight:800;">✓ Completed on Record</span>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <button type="button" style="background:none; border:none; color:var(--text-muted); font-size:0.75rem; cursor:pointer; text-decoration:underline;" onclick="app.toggleTaskCompleted('${asg.id}', false)" title="Marked by mistake? Reopen">↩ Reopen</button>
+                <button type="button" style="background:none; border:none; color:var(--high-priority); cursor:pointer; font-size:0.8rem;" onclick="app.deleteAssignment('${asg.id}')">🗑 Delete</button>
+              </div>
+            ` : (isPastDue ? `
+              <span style="font-size:0.8rem; font-weight:800; color:#b91c1c;">⚠️ Past Due (${asg.dueDate}) — Not Completed</span>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <button type="button" class="btn-secondary" style="font-size:0.75rem; padding:4px 10px; border-color:#fca5a5; color:#991b1b; font-weight:700;" onclick="app.toggleTaskCompleted('${asg.id}', false)">✓ Submit Late</button>
+                <button type="button" style="background:none; border:none; color:var(--high-priority); cursor:pointer; font-size:0.8rem;" onclick="app.deleteAssignment('${asg.id}')">🗑 Delete</button>
+              </div>
+            ` : `
+              <button type="button" class="btn-secondary" style="padding: 6px 14px; font-size: 0.82rem; font-weight:700; cursor:pointer; background:var(--primary); color:#fff;" onclick="app.toggleTaskCompleted('${asg.id}', false)">
+                ✓ Mark as Completed
+              </button>
+              <button type="button" style="background:none; border:none; color:var(--high-priority); cursor:pointer; font-size:0.8rem;" onclick="app.deleteAssignment('${asg.id}')">
+                🗑 Delete
+              </button>
+            `)}
           </div>
         </div>
       `;
