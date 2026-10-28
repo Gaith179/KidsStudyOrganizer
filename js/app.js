@@ -424,8 +424,6 @@ class StudyApp {
         greeting: "Dear Ryan,",
         greetingColor: "#1e1b4b",
         english: "You are amazing and great, and someday you will be a great man and a role model for everyone.",
-        arabic: "أنت رائع ومميز، ويوماً ما ستكون رجلاً عظيماً وقدوة للجميع..",
-        arabicColor: "#4338ca",
         signature: "Love you, — Your Dad ❤️",
         sigColor: "#b45309",
         barColor: "linear-gradient(90deg, #4f46e5, #fbbf24)"
@@ -443,8 +441,6 @@ class StudyApp {
         greeting: "Dear Jad,",
         greetingColor: "#065f46",
         english: "My hero, the amazing Jad! Someday people will talk about your success.",
-        arabic: "بطلي، وجاد الرائع! يوماً ما سيتحدث الجميع عن نجاحك..",
-        arabicColor: "#047857",
         signature: "Love you, — Your Dad ❤️",
         sigColor: "#059669",
         barColor: "linear-gradient(90deg, #059669, #34d399)"
@@ -462,8 +458,6 @@ class StudyApp {
         greeting: "To the Heart of Our Family,",
         greetingColor: "#9f1239",
         english: "The perfect mother, the amazing wife! Thank you for your endless effort in building our family.",
-        arabic: "الأم المثالية، والزوجة الرائعة! شكراً لجهودكِ وعطائكِ المستمر في بناء عائلتنا..",
-        arabicColor: "#be123c",
         signature: "Love you, — Gaith ❤️",
         sigColor: "#e11d48",
         barColor: "linear-gradient(90deg, #e11d48, #fb7185)"
@@ -483,22 +477,19 @@ class StudyApp {
           ${letterData.badge}
         </span>
       </div>
-      <div style="width:60px; height:60px; border-radius:50%; background:${letterData.avatarBg}; color:#fff; font-size:26px; font-weight:900; display:flex; align-items:center; justify-content:center; margin:0 auto 12px auto; border:3px solid ${letterData.avatarBorder}; box-shadow:0 4px 14px rgba(0,0,0,0.15);">
+      <div style="width:64px; height:64px; border-radius:50%; background:${letterData.avatarBg}; color:#fff; font-size:28px; font-weight:900; display:flex; align-items:center; justify-content:center; margin:0 auto 12px auto; border:3px solid ${letterData.avatarBorder}; box-shadow:0 4px 14px rgba(0,0,0,0.15);">
         ${letterData.avatar}
       </div>
-      <h3 style="margin:0 0 10px 0; font-size:1.25rem; font-weight:900; color:${letterData.greetingColor};">
+      <h3 style="margin:0 0 12px 0; font-size:1.3rem; font-weight:900; color:${letterData.greetingColor};">
         ${letterData.greeting}
       </h3>
-      <div style="font-size:1.02rem; line-height:1.55; color:#1e293b; font-weight:600; margin-bottom:10px; font-style:italic; padding:0 8px;">
+      <div style="font-size:1.08rem; line-height:1.6; color:#1e293b; font-weight:600; margin-bottom:16px; font-style:italic; padding:0 12px;">
         "${letterData.english}"
       </div>
-      <div style="font-size:0.95rem; line-height:1.6; color:${letterData.arabicColor}; font-weight:700; margin-bottom:14px; direction:rtl; padding:0 8px;">
-        «${letterData.arabic}»
-      </div>
-      <div style="font-weight:900; font-size:1.05rem; color:${letterData.sigColor};">
+      <div style="font-weight:900; font-size:1.1rem; color:${letterData.sigColor};">
         ${letterData.signature}
       </div>
-      <div style="font-size:0.72rem; color:var(--text-muted); margin-top:10px; opacity:0.8;">
+      <div style="font-size:0.72rem; color:var(--text-muted); margin-top:12px; opacity:0.8;">
         ⏱️ Closing in 3 seconds • Tap anywhere to dismiss
       </div>
     `;
