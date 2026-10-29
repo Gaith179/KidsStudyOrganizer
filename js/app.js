@@ -1922,39 +1922,6 @@ When any homework or exam is checked off as completed, it updates instantly acro
         </div>
       `;
     }).join("");
-              
-              <button type="button" class="btn-xs-study" onclick="app.triggerPhotoCapture('${task.id}', '${(task.rawTitle || task.title || '').replace(/'/g, "\\'")}')" title="Upload workbook page photo for parents">
-                📸 ${photo ? 'Photo ✓' : 'Photo'}
-              </button>
-              <button type="button" class="btn-xs-study" style="background:#e0e7ff; color:#3730a3; border-color:#c7d2fe;" onclick="cambridgeQuizzer.startQuiz('${this.activeKidId}', '${task.subject || 'Mathematics'}', '${(task.rawTitle || task.title || '').replace(/'/g, "\\'")}')" title="Take a 3-question Cambridge practice quiz">
-                🧠 Quiz (+15 pts)
-              </button>
-              <button type="button" class="btn-xs-study" style="background:#fef3c7; color:#92400e; border-color:#fcd34d;" onclick="app.requestHelpOnTask('${task.id}', '${(task.rawTitle || task.title || '').replace(/'/g, "\\'")}', '${task.subject || ''}')" title="Ask Father or Mother for assistance">
-                ❓ Ask Help
-              </button>
-              <button type="button" class="btn-xs-study" onclick="app.searchTopic('${task.subject || ''}', '${(task.rawTitle || task.title || '').replace(/'/g, "\\'")}')" title="Search video lessons on YouTube">
-                🎥 Video Help
-              </button>
-              ${vn && (vn.audio || vn.audioData) ? `
-                <div class="voice-note-bar" style="background:#eef2ff; border:1px solid #c7d2fe; padding:2px 8px; border-radius:999px;">
-                  <button type="button" class="voice-pill-btn" onclick="app.playVoiceNote('${task.id}', this)" title="Play Parent Voice Note">
-                    <span>🔊</span>
-                    <span>Note (${vn.from || 'Parent'})</span>
-                  </button>
-                  ${this.isParentRole() ? `
-                    <button type="button" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:0.75rem;" onclick="app.deleteVoiceNote('${task.id}')">✕</button>
-                  ` : ''}
-                </div>
-              ` : (this.isParentRole() ? `
-                <button type="button" class="btn-xs-study" onclick="app.startVoiceRecording('${task.id}', '${(task.rawTitle || task.title || '').replace(/'/g, "\\'")}')" title="Record Voice Note for child">
-                  <span>🎙️ Voice Note</span>
-                </button>
-              ` : '')}
-            </div>
-          </div>
-        </div>
-      `;
-    }).join("");
 
     container.innerHTML = scopeToggleHTML + tasksListHTML;
   }
